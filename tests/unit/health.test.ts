@@ -49,8 +49,15 @@ describe('backend health route wiring', () => {
     expect(mockedListen).toHaveBeenCalledTimes(1);
     expect(mockedGet).toHaveBeenCalledWith('/health', expect.any(Function));
 
-    const registeredHandler = mockedGet.mock.calls[0]?.[1] as RegisteredHandler;
-    expect(registeredHandler).toBeTypeOf('function');
+    const healthCall = mockedGet.mock.calls.find((call) => call[0] === '/health');
+    expect(healthCall, 'Expected /health route to be registered').toBeDefined();
+
+    const registeredHandler = healthCall?.[1];
+    expect(typeof registeredHandler).toBe('function');
+
+    if (!registeredHandler) {
+      throw new Error('Expected /health handler function');
+    }
 
     let payload: HealthPayload | undefined;
     const response = {
@@ -59,7 +66,7 @@ describe('backend health route wiring', () => {
       },
     };
 
-    registeredHandler?.({}, response);
+    registeredHandler({}, response);
 
     expect(payload?.status).toBe('UP');
     expect(payload?.time).toBeTypeOf('string');
