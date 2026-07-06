@@ -9,10 +9,12 @@ type RegisteredHandler = ((req: unknown, res: { json: (payload: HealthPayload) =
 
 const mockedGet = vi.fn();
 const mockedListen = vi.fn();
+const mockedDisable = vi.fn();
 const originalPort = process.env.PORT;
 
 vi.mock('express', () => {
   const expressFactory = vi.fn(() => ({
+    disable: mockedDisable,
     get: mockedGet,
     listen: mockedListen,
   }));
@@ -24,6 +26,7 @@ vi.mock('express', () => {
 
 describe('backend health route wiring', () => {
   beforeEach(() => {
+    mockedDisable.mockClear();
     mockedGet.mockClear();
     mockedListen.mockClear();
     vi.resetModules();
@@ -42,6 +45,7 @@ describe('backend health route wiring', () => {
   it('registers GET /health and returns status UP with parseable time', async () => {
     await import('../../src/index.ts');
 
+    expect(mockedDisable).toHaveBeenCalledWith('x-powered-by');
     expect(mockedListen).toHaveBeenCalledTimes(1);
     expect(mockedGet).toHaveBeenCalledWith('/health', expect.any(Function));
 
