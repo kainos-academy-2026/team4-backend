@@ -5,7 +5,6 @@ type HealthPayload = {
   time?: string;
 };
 
-type RegisteredHandler = ((req: unknown, res: { json: (payload: HealthPayload) => void }) => void) | null;
 
 const mockedGet = vi.fn();
 const mockedListen = vi.fn();
