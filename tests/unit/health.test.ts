@@ -90,14 +90,17 @@ describe('backend health route wiring', () => {
   it('logs startup message when listen callback executes', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
-    mockedListen.mockImplementationOnce((port: number, callback?: () => void) => {
-      callback?.();
-      return { port };
-    });
+    try {
+      mockedListen.mockImplementationOnce((port: number, callback?: () => void) => {
+        callback?.();
+        return { port };
+      });
 
-    await import('../../src/index.ts');
+      await import('../../src/index.ts');
 
-    expect(logSpy).toHaveBeenCalledWith('API listening on port 3000');
-    logSpy.mockRestore();
+      expect(logSpy).toHaveBeenCalledWith('API listening on port 3000');
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 });
