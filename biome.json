@@ -6,8 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"include": ["**"],
- 		"ignore": ["dist", "node_modules"]
+		"includes": ["**", "!dist", "!node_modules"]
 	},
 	"formatter": {
 		"enabled": true,

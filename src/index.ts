@@ -3,7 +3,9 @@ import express from "express";
 const app = express();
 app.disable("x-powered-by");
 
-const port = process.env.PORT || 3000;
+const envPort = process.env.PORT;
+const parsedPort = envPort !== undefined ? Number(envPort) : NaN;
+const port = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
 app.get("/health", (_request, response) => {
 	response.json({
