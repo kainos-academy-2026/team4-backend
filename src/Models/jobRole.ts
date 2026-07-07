@@ -5,4 +5,5 @@ export type JobRole = {
 	capability: string;
 	band: string;
 	closingDate: Date;
+    status: string;
 };

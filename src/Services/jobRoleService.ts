@@ -10,6 +10,7 @@ const jobRoleTable: readonly JobRole[] = [
 		capability: "Engineering",
 		band: "B2",
 		closingDate: new Date("2026-08-01T00:00:00.000Z"),
+		status: "Open",
 	},
 	{
 		id: "jr-002",
@@ -18,6 +19,7 @@ const jobRoleTable: readonly JobRole[] = [
 		capability: "Design",
 		band: "B3",
 		closingDate: new Date("2026-08-15T00:00:00.000Z"),
+		status: "Open",
 	},
 	{
 		id: "jr-003",
@@ -26,6 +28,7 @@ const jobRoleTable: readonly JobRole[] = [
 		capability: "Quality",
 		band: "B1",
 		closingDate: new Date("2026-08-20T00:00:00.000Z"),
+		status: "Open",
 	},
 ];
 
@@ -38,6 +41,7 @@ export class JobRoleService {
 			capability: jobRole.capability,
 			band: jobRole.band,
 			closingDate: jobRole.closingDate.toISOString(),
+			status: jobRole.status,
 		}));
 	}
 }

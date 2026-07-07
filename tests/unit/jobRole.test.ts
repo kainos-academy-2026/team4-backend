@@ -18,6 +18,7 @@ describe("job role service", () => {
 				capability: "Engineering",
 				band: "B2",
 				closingDate: "2026-08-01T00:00:00.000Z",
+				status: "Open",
 			}),
 		);
 	});
@@ -33,6 +34,7 @@ describe("job role controller", () => {
 				capability: "Engineering",
 				band: "B2",
 				closingDate: "2026-11-01T00:00:00.000Z",
+				status: "Open",
 			},
 		];
 
@@ -118,6 +120,7 @@ describe("job role router", () => {
 				capability: expect.any(String),
 				band: expect.any(String),
 				closingDate: expect.any(String),
+				status: expect.any(String),
 			}),
 		);
 	});
