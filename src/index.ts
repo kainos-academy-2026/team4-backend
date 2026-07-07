@@ -1,4 +1,5 @@
 import express from "express";
+import { registerJobRoleRoutes } from "./Routes/jobRoleRouter";
 
 const app = express();
 app.disable("x-powered-by");
@@ -13,6 +14,8 @@ app.get("/health", (_request, response) => {
 		time: new Date().toISOString(),
 	});
 });
+
+registerJobRoleRoutes(app);
 
 app.listen(port, () => {
 	console.log(`API listening on port ${port}`);

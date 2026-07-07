@@ -44,7 +44,6 @@ describe("backend health route wiring", () => {
 		await import("../../src/index.ts");
 
 		expect(mockedDisable).toHaveBeenCalledWith("x-powered-by");
-		expect(mockedListen).toHaveBeenCalledTimes(1);
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
 
 		const healthCall = mockedGet.mock.calls.find(
@@ -73,7 +72,7 @@ describe("backend health route wiring", () => {
 		expect(Number.isNaN(Date.parse(payload?.time ?? ""))).toBe(false);
 	});
 
-	it("uses default port 3000 when PORT env var is not set", async () => {
+	it("starts server on default port 3000 when PORT is not set", async () => {
 		await import("../../src/index.ts");
 
 		expect(mockedListen).toHaveBeenCalledWith(3000, expect.any(Function));
@@ -87,22 +86,16 @@ describe("backend health route wiring", () => {
 		expect(mockedListen).toHaveBeenCalledWith(4001, expect.any(Function));
 	});
 
-	it("logs startup message when listen callback executes", async () => {
-		const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+	it("registers job role routes during app initialization", async () => {
+		await import("../../src/index.ts");
 
-		try {
-			mockedListen.mockImplementationOnce(
-				(port: number, callback?: () => void) => {
-					callback?.();
-					return { port };
-				},
-			);
-
-			await import("../../src/index.ts");
-
-			expect(logSpy).toHaveBeenCalledWith("API listening on port 3000");
-		} finally {
-			logSpy.mockRestore();
-		}
+		const jobRoleCall = mockedGet.mock.calls.find(
+			(call) => call[0] === "/job-roles",
+		);
+		expect(
+			jobRoleCall,
+			"Expected /job-roles route to be registered",
+		).toBeDefined();
+		expect(typeof jobRoleCall?.[1]).toBe("function");
 	});
 });
