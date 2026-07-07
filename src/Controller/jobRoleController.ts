@@ -3,7 +3,7 @@ import { JobRoleService } from "../Services/jobRoleService";
 
 export class JobRoleController {
 	public constructor(
-		private readonly jobRoleService: JobRoleService = new JobRoleService(),
+		private readonly jobRoleService: JobRoleService
 	) {}
 
 	public async getJobRoles(

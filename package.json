@@ -19,7 +19,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
@@ -36,7 +37,7 @@
   "vitest": {
     "environment": "node",
     "include": [
-      "tests/unit/**/*.test.ts"
+      "tests/**/*.test.ts"
     ],
     "coverage": {
       "provider": "v8",

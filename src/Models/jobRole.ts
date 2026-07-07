@@ -1,9 +1,9 @@
 export type JobRole = {
-	id: string;
+	id: number;
 	roleName: string;
 	location: string;
 	capability: string;
 	band: string;
 	closingDate: Date;
-    status: string;
+	status: string;
 };

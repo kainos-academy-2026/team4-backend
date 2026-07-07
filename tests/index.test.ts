@@ -1,19 +1,17 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-type HealthPayload = {
-	status?: string;
-	time?: string;
-};
-
 const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
+const mockedUse = vi.fn();
+const mockedJobRoleRouter = { __router: "jobRoleRouter" };
 const originalPort = process.env.PORT;
 
 vi.mock("express", () => {
 	const expressFactory = vi.fn(() => ({
 		disable: mockedDisable,
 		get: mockedGet,
+		use: mockedUse,
 		listen: mockedListen,
 	}));
 
@@ -22,10 +20,15 @@ vi.mock("express", () => {
 	};
 });
 
-describe("backend health route wiring", () => {
+vi.mock("../src/Routes/jobRoleRouter", () => ({
+	default: mockedJobRoleRouter,
+}));
+
+describe("index route wiring", () => {
 	beforeEach(() => {
 		mockedDisable.mockClear();
 		mockedGet.mockClear();
+		mockedUse.mockClear();
 		mockedListen.mockClear();
 		vi.resetModules();
 		delete process.env.PORT;
@@ -41,15 +44,16 @@ describe("backend health route wiring", () => {
 	});
 
 	it("registers GET /health and returns status UP with parseable time", async () => {
-		await import("../../src/index.ts");
+		await import("../src/index.ts");
 
 		expect(mockedDisable).toHaveBeenCalledWith("x-powered-by");
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
+		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 
 		const healthCall = mockedGet.mock.calls.find(
 			(call) => call[0] === "/health",
 		);
-		expect(healthCall, "Expected /health route to be registered").toBeDefined();
+		expect(healthCall).toBeDefined();
 
 		const registeredHandler = healthCall?.[1];
 		expect(typeof registeredHandler).toBe("function");
@@ -58,9 +62,9 @@ describe("backend health route wiring", () => {
 			throw new Error("Expected /health handler function");
 		}
 
-		let payload: HealthPayload | undefined;
+		let payload: { status?: string; time?: string } | undefined;
 		const response = {
-			json: (body: HealthPayload) => {
+			json: (body: { status?: string; time?: string }) => {
 				payload = body;
 			},
 		};
@@ -73,7 +77,7 @@ describe("backend health route wiring", () => {
 	});
 
 	it("starts server on default port 3000 when PORT is not set", async () => {
-		await import("../../src/index.ts");
+		await import("../src/index.ts");
 
 		expect(mockedListen).toHaveBeenCalledWith(3000, expect.any(Function));
 	});
@@ -81,21 +85,30 @@ describe("backend health route wiring", () => {
 	it("uses PORT env var when provided", async () => {
 		process.env.PORT = "4001";
 
-		await import("../../src/index.ts");
+		await import("../src/index.ts");
 
 		expect(mockedListen).toHaveBeenCalledWith(4001, expect.any(Function));
 	});
 
-	it("registers job role routes during app initialization", async () => {
-		await import("../../src/index.ts");
+	it("logs startup message when server starts listening", async () => {
+		const mockedConsoleLog = vi
+			.spyOn(console, "log")
+			.mockImplementation(() => undefined);
 
-		const jobRoleCall = mockedGet.mock.calls.find(
-			(call) => call[0] === "/job-roles",
-		);
-		expect(
-			jobRoleCall,
-			"Expected /job-roles route to be registered",
-		).toBeDefined();
-		expect(typeof jobRoleCall?.[1]).toBe("function");
+		process.env.PORT = "4001";
+		await import("../src/index.ts");
+
+		const listenCallback = mockedListen.mock.calls[0]?.[1];
+		expect(typeof listenCallback).toBe("function");
+
+		if (!listenCallback) {
+			throw new Error("Expected listen callback function");
+		}
+
+		listenCallback();
+
+		expect(mockedConsoleLog).toHaveBeenCalledWith("API listening on port 4001");
+
+		mockedConsoleLog.mockRestore();
 	});
 });

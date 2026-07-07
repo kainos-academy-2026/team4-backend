@@ -1,13 +1,21 @@
-import type { Express, NextFunction, Request, Response } from "express";
+import { Router } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { JobRoleController } from "../Controller/jobRoleController";
+import { JobRoleService } from "../Services/jobRoleService";
 
-export const registerJobRoleRoutes = (app: Express): void => {
-	const jobRoleController = new JobRoleController();
+const router = Router();
+const jobRoleService = new JobRoleService();
+const jobRoleController = new JobRoleController(jobRoleService);
 
-	app.get(
-		"/job-roles",
-		(request: Request, response: Response, next: NextFunction) => {
-			return jobRoleController.getJobRoles(request, response, next);
-		},
-	);
-};
+router.get("/job-roles", (request: Request, response: Response, next: NextFunction) => {
+	void jobRoleController.getJobRoles(request, response, next);
+});
+
+router.get("/health", (_request: Request, response: Response) => {
+	response.json({
+		status: "UP",
+		time: new Date().toISOString(),
+	});
+});
+
+export default router;

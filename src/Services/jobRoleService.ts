@@ -1,10 +1,11 @@
+import { JobRoleMapper } from "../Mappers/JobRoleMapper";
 import type { JobRole } from "../Models/jobRole";
 import type { JobRoleResponse } from "../Models/jobRoleResponse";
 
 // In-memory schema substitute until a database is introduced.
 const jobRoleTable: readonly JobRole[] = [
 	{
-		id: "jr-001",
+		id: 1,
 		roleName: "Backend Engineer",
 		location: "Manchester",
 		capability: "Engineering",
@@ -13,7 +14,7 @@ const jobRoleTable: readonly JobRole[] = [
 		status: "Open",
 	},
 	{
-		id: "jr-002",
+		id: 2,
 		roleName: "Product Designer",
 		location: "London",
 		capability: "Design",
@@ -22,7 +23,7 @@ const jobRoleTable: readonly JobRole[] = [
 		status: "Open",
 	},
 	{
-		id: "jr-003",
+		id: 3,
 		roleName: "QA Analyst",
 		location: "Remote",
 		capability: "Quality",
@@ -34,14 +35,9 @@ const jobRoleTable: readonly JobRole[] = [
 
 export class JobRoleService {
 	public async getJobRoles(): Promise<JobRoleResponse[]> {
-		return jobRoleTable.map((jobRole) => ({
-			id: jobRole.id,
-			roleName: jobRole.roleName,
-			location: jobRole.location,
-			capability: jobRole.capability,
-			band: jobRole.band,
-			closingDate: jobRole.closingDate.toISOString(),
-			status: jobRole.status,
-		}));
+		// TODO: Replace this with this.jobRoleRepository.getJobRoles() once the real repository/DB layer is added.
+		const jobRoles = jobRoleTable;
+		
+		return JobRoleMapper.toResponses(jobRoles);
 	}
 }
