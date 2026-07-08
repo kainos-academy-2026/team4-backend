@@ -59,4 +59,10 @@ describe("job role mapper", () => {
 		expect(result[0]?.closingDate).toBe("2026-08-01T00:00:00.000Z");
 		expect(result[1]?.closingDate).toBe("2026-08-15T00:00:00.000Z");
 	});
+
+	it("returns an empty array when given no job roles", () => {
+		const mapper = new JobRoleMapper();
+
+		expect(mapper.toResponses([])).toEqual([]);
+	});
 });

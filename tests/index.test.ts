@@ -90,6 +90,22 @@ describe("index route wiring", () => {
 		expect(mockedListen).toHaveBeenCalledWith(4001, expect.any(Function));
 	});
 
+	it("falls back to default port when PORT is non-numeric", async () => {
+		process.env.PORT = "abc";
+
+		await import("../src/index.ts");
+
+		expect(mockedListen).toHaveBeenCalledWith(3000, expect.any(Function));
+	});
+
+	it("uses port 0 when PORT is set to 0", async () => {
+		process.env.PORT = "0";
+
+		await import("../src/index.ts");
+
+		expect(mockedListen).toHaveBeenCalledWith(0, expect.any(Function));
+	});
+
 	it("logs startup message when server starts listening", async () => {
 		const mockedConsoleLog = vi
 			.spyOn(console, "log")

@@ -84,4 +84,34 @@ describe("job role service", () => {
 			},
 		]);
 	});
+
+	it("returns an empty array when DAO returns no roles", async () => {
+		const mockDao = {
+			getJobRoles: async () => [],
+		};
+		const mockMapper = new JobRoleMapper();
+		const toResponsesSpy = vi.spyOn(mockMapper, "toResponses");
+
+		const service = new JobRoleService(mockDao, mockMapper);
+		const result = await service.getJobRoles();
+
+		expect(toResponsesSpy).toHaveBeenCalledTimes(1);
+		expect(toResponsesSpy).toHaveBeenCalledWith([]);
+		expect(result).toEqual([]);
+
+		toResponsesSpy.mockRestore();
+	});
+
+	it("rethrows DAO errors unchanged", async () => {
+		const daoError = new Error("dao failure");
+		const mockDao = {
+			getJobRoles: async () => {
+				throw daoError;
+			},
+		};
+
+		const service = new JobRoleService(mockDao, new JobRoleMapper());
+
+		await expect(service.getJobRoles()).rejects.toBe(daoError);
+	});
 });
