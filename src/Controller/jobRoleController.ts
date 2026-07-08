@@ -1,10 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { JobRoleService } from "../Services/jobRoleService";
+import type { JobRoleService } from "../Services/jobRoleService";
 
 export class JobRoleController {
-	public constructor(
-		private readonly jobRoleService: JobRoleService
-	) {}
+	public constructor(private readonly jobRoleService: JobRoleService) {}
 
 	public getJobRoles = async (
 		_request: Request,

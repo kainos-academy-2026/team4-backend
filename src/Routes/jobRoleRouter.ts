@@ -1,5 +1,4 @@
 import { Router } from "express";
-import type { NextFunction, Request, Response } from "express";
 import { JobRoleController } from "../Controller/jobRoleController";
 import { JobRoleService } from "../Services/jobRoleService";
 

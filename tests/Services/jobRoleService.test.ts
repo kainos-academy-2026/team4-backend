@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { JobRoleDao } from "../../src/Dao/jobRoleDao";
 import { JobRoleMapper } from "../../src/Mappers/JobRoleMapper";
-import { JobRoleService } from "../../src/Services/jobRoleService";
 import type { JobRole } from "../../src/Models/jobRole";
+import { JobRoleService } from "../../src/Services/jobRoleService";
 
 describe("job role service", () => {
 	it("calls default DAO and mapper correctly", async () => {

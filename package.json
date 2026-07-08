@@ -1,58 +1,58 @@
 {
-  "name": "team4-backend",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Basic Express API backend",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "db:seed": "prisma db seed",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "lint:ci": "biome ci .",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.19.3",
-    "dotenv": "^17.4.2",
-    "express": "^5.1.0",
-    "pg": "^8.22.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.13",
-    "@types/pg": "^8.20.0",
-    "@types/supertest": "^7.2.0",
-    "@vitest/coverage-v8": "^4.1.10",
-    "@vitest/ui": "^4.1.10",
-    "prisma": "^6.19.3",
-    "supertest": "^7.2.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "vitest": "^4.1.10"
-  },
-  "vitest": {
-    "environment": "node",
-    "include": [
-      "tests/**/*.test.ts"
-    ],
-    "coverage": {
-      "provider": "v8",
-      "reporter": [
-        "text",
-        "html"
-      ]
-    }
-  }
+	"name": "team4-backend",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Basic Express API backend",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"dev": "tsx watch src/index.ts",
+		"start": "node dist/index.js",
+		"db:seed": "prisma db seed",
+		"prisma:generate": "prisma generate",
+		"prisma:migrate:dev": "prisma migrate dev",
+		"prisma:migrate:deploy": "prisma migrate deploy",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"lint:ci": "biome ci .",
+		"test": "vitest run",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest run --coverage"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"dependencies": {
+		"@prisma/client": "^6.19.3",
+		"dotenv": "^17.4.2",
+		"express": "^5.1.0",
+		"pg": "^8.22.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.2",
+		"@types/express": "^5.0.3",
+		"@types/node": "^24.0.13",
+		"@types/pg": "^8.20.0",
+		"@types/supertest": "^7.2.0",
+		"@vitest/coverage-v8": "^4.1.10",
+		"@vitest/ui": "^4.1.10",
+		"prisma": "^6.19.3",
+		"supertest": "^7.2.2",
+		"tsx": "^4.20.3",
+		"typescript": "^5.8.3",
+		"vitest": "^4.1.10"
+	},
+	"vitest": {
+		"environment": "node",
+		"include": [
+			"tests/**/*.test.ts"
+		],
+		"coverage": {
+			"provider": "v8",
+			"reporter": [
+				"text",
+				"html"
+			]
+		}
+	}
 }
