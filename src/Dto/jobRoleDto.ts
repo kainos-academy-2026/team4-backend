@@ -4,8 +4,8 @@ export interface JobRoleDto {
 	id: number;
 	roleName: string;
 	location: string;
-	capability: string;
-	band: string;
+	capabilityId: number;
+	bandId: number;
 	closingDate: string;
 	status: string;
 }
@@ -17,8 +17,8 @@ export const jobRoleTable: readonly JobRole[] = [
 		id: 1,
 		roleName: "Backend Engineer",
 		location: "Manchester",
-		capability: "Engineering",
-		band: "B2",
+		capabilityId: 1,
+		bandId: 2,
 		closingDate: new Date("2026-08-01T00:00:00.000Z"),
 		status: "Open",
 	},
@@ -26,8 +26,8 @@ export const jobRoleTable: readonly JobRole[] = [
 		id: 2,
 		roleName: "Product Designer",
 		location: "London",
-		capability: "Design",
-		band: "B3",
+		capabilityId: 2,
+		bandId: 3,
 		closingDate: new Date("2026-08-15T00:00:00.000Z"),
 		status: "Open",
 	},
@@ -35,8 +35,8 @@ export const jobRoleTable: readonly JobRole[] = [
 		id: 3,
 		roleName: "QA Analyst",
 		location: "Remote",
-		capability: "Quality",
-		band: "B1",
+		capabilityId: 3,
+		bandId: 1,
 		closingDate: new Date("2026-08-20T00:00:00.000Z"),
 		status: "Open",
 	},

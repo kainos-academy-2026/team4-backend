@@ -11,8 +11,8 @@ describe("job role service", () => {
 				id: 1,
 				roleName: "Backend Engineer",
 				location: "Manchester",
-				capability: "Engineering",
-				band: "B2",
+				capabilityId: 1,
+				bandId: 2,
 				closingDate: new Date("2026-08-01T00:00:00.000Z"),
 				status: "Open",
 			},
@@ -22,8 +22,8 @@ describe("job role service", () => {
 				id: 1,
 				roleName: "Backend Engineer",
 				location: "Manchester",
-				capability: "Engineering",
-				band: "B2",
+				capabilityId: 1,
+				bandId: 2,
 				closingDate: "2026-08-01T00:00:00.000Z",
 				status: "Open",
 			},
@@ -32,11 +32,13 @@ describe("job role service", () => {
 		const getJobRolesSpy = vi
 			.spyOn(JobRoleDao.prototype, "getJobRoles")
 			.mockResolvedValue(mockJobRoles);
+
+		const mockMapper = new JobRoleMapper();
 		const toResponsesSpy = vi
-			.spyOn(JobRoleMapper, "toResponses")
+			.spyOn(mockMapper, "toResponses")
 			.mockReturnValue(mappedResponses);
 
-		const service = new JobRoleService();
+		const service = new JobRoleService(new JobRoleDao(), mockMapper);
 
 		const result = await service.getJobRoles();
 
@@ -55,8 +57,8 @@ describe("job role service", () => {
 				id: 99,
 				roleName: "Platform Engineer",
 				location: "Leeds",
-				capability: "Engineering",
-				band: "B3",
+				capabilityId: 1,
+				bandId: 3,
 				closingDate: new Date("2026-09-10T00:00:00.000Z"),
 				status: "Open",
 			},
@@ -65,8 +67,9 @@ describe("job role service", () => {
 		const mockDao = {
 			getJobRoles: async () => mockJobRoles,
 		};
+		const mockMapper = new JobRoleMapper();
 
-		const service = new JobRoleService(mockDao);
+		const service = new JobRoleService(mockDao, mockMapper);
 		const result = await service.getJobRoles();
 
 		expect(result).toEqual([
@@ -74,8 +77,8 @@ describe("job role service", () => {
 				id: 99,
 				roleName: "Platform Engineer",
 				location: "Leeds",
-				capability: "Engineering",
-				band: "B3",
+				capabilityId: 1,
+				bandId: 3,
 				closingDate: "2026-09-10T00:00:00.000Z",
 				status: "Open",
 			},

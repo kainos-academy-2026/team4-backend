@@ -6,16 +6,16 @@ export class JobRoleController {
 		private readonly jobRoleService: JobRoleService
 	) {}
 
-	public async getJobRoles(
+	public getJobRoles = async (
 		_request: Request,
 		response: Response,
 		next: NextFunction,
-	): Promise<void> {
+	): Promise<void> => {
 		try {
 			const jobRoles = await this.jobRoleService.getJobRoles();
 			response.status(200).json(jobRoles);
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 }

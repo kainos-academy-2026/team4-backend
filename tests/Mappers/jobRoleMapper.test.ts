@@ -8,20 +8,21 @@ describe("job role mapper", () => {
 			id: 99,
 			roleName: "Platform Engineer",
 			location: "Leeds",
-			capability: "Engineering",
-			band: "B3",
+			capabilityId: 1,
+			bandId: 3,
 			closingDate: new Date("2026-10-01T12:00:00.000Z"),
 			status: "Open",
 		};
 
-		const result = JobRoleMapper.toResponse(source);
+		const mapper = new JobRoleMapper();
+		const result = mapper.toResponse(source);
 
 		expect(result).toEqual({
 			id: 99,
 			roleName: "Platform Engineer",
 			location: "Leeds",
-			capability: "Engineering",
-			band: "B3",
+			capabilityId: 1,
+			bandId: 3,
 			closingDate: "2026-10-01T12:00:00.000Z",
 			status: "Open",
 		});
@@ -33,8 +34,8 @@ describe("job role mapper", () => {
 				id: 1,
 				roleName: "Backend Engineer",
 				location: "Manchester",
-				capability: "Engineering",
-				band: "B2",
+				capabilityId: 1,
+				bandId: 2,
 				closingDate: new Date("2026-08-01T00:00:00.000Z"),
 				status: "Open",
 			},
@@ -42,14 +43,15 @@ describe("job role mapper", () => {
 				id: 2,
 				roleName: "Product Designer",
 				location: "London",
-				capability: "Design",
-				band: "B3",
+				capabilityId: 2,
+				bandId: 3,
 				closingDate: new Date("2026-08-15T00:00:00.000Z"),
 				status: "Open",
 			},
 		];
 
-		const result = JobRoleMapper.toResponses(source);
+		const mapper = new JobRoleMapper();
+		const result = mapper.toResponses(source);
 
 		expect(result).toHaveLength(2);
 		expect(result[0]?.id).toBe(1);

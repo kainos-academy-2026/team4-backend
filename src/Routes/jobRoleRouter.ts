@@ -7,8 +7,6 @@ const router = Router();
 const jobRoleService = new JobRoleService();
 const jobRoleController = new JobRoleController(jobRoleService);
 
-router.get("/job-roles", (request: Request, response: Response, next: NextFunction) => {
-	void jobRoleController.getJobRoles(request, response, next);
-});
+router.get("/job-roles", jobRoleController.getJobRoles);
 
 export default router;
