@@ -52,33 +52,4 @@ describe("job role router", () => {
 			next,
 		);
 	});
-
-	it("registers GET /health and returns status payload", async () => {
-		await import("../../../src/Routes/jobRoleRouter");
-
-		const healthRouteCall = mockedRouterGet.mock.calls.find(
-			(call) => call[0] === "/health",
-		);
-		expect(healthRouteCall).toBeDefined();
-
-		const healthHandler = healthRouteCall?.[1];
-		expect(typeof healthHandler).toBe("function");
-
-		if (!healthHandler) {
-			throw new Error("Expected /health route handler");
-		}
-
-		let payload: { status?: string; time?: string } | undefined;
-		const response = {
-			json: (body: { status?: string; time?: string }) => {
-				payload = body;
-			},
-		};
-
-		healthHandler({}, response);
-
-		expect(payload?.status).toBe("UP");
-		expect(payload?.time).toBeTypeOf("string");
-		expect(Number.isNaN(Date.parse(payload?.time ?? ""))).toBe(false);
-	});
 });

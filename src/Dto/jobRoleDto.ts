@@ -1,27 +1,43 @@
-import { z } from "zod";
+import type { JobRole } from "../Models/jobRole";
 
 export interface JobRoleDto {
-    id: number;
-    roleName: string;
-    location: string;
-    capability: string;
-    band: string;
-    closingDate: string;
-    status: string;
+	id: number;
+	roleName: string;
+	location: string;
+	capability: string;
+	band: string;
+	closingDate: string;
+	status: string;
 }
 
-export const JobRoleDtoSchema = z.object({
-    id: z.number(),
-    roleName: z.string(),
-    location: z.string(),
-    capability: z.string(),
-    band: z.string(),
-    closingDate: z.string(),
-    status: z.string(),
-});
+export type JobRoleDtoType = JobRoleDto;
 
-export type JobRoleDtoType = z.infer<typeof JobRoleDtoSchema>;
-
-export const IdParamSchema = z.object({
-    id: z.coerce.number().int("ID must be an integer").positive("ID must be a positive integer"),
-});
+export const jobRoleTable: readonly JobRole[] = [
+	{
+		id: 1,
+		roleName: "Backend Engineer",
+		location: "Manchester",
+		capability: "Engineering",
+		band: "B2",
+		closingDate: new Date("2026-08-01T00:00:00.000Z"),
+		status: "Open",
+	},
+	{
+		id: 2,
+		roleName: "Product Designer",
+		location: "London",
+		capability: "Design",
+		band: "B3",
+		closingDate: new Date("2026-08-15T00:00:00.000Z"),
+		status: "Open",
+	},
+	{
+		id: 3,
+		roleName: "QA Analyst",
+		location: "Remote",
+		capability: "Quality",
+		band: "B1",
+		closingDate: new Date("2026-08-20T00:00:00.000Z"),
+		status: "Open",
+	},
+];

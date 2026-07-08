@@ -11,11 +11,4 @@ router.get("/job-roles", (request: Request, response: Response, next: NextFuncti
 	void jobRoleController.getJobRoles(request, response, next);
 });
 
-router.get("/health", (_request: Request, response: Response) => {
-	response.json({
-		status: "UP",
-		time: new Date().toISOString(),
-	});
-});
-
 export default router;
