@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL") /// Update the DATABASE_URL in .env file to point to PostgreSQL database
+}
+
+/// Scaffold User Model - using as temp until DB created 
+model User {
+  id           String        @id @default(cuid()) // Identify user row
+  email        String        @unique
+  passwordHash String
+  sessions     AuthSession[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+/// Single-device policy: userId is unique => one active session row per user
+model AuthSession {
+  id               String    @id @default(cuid()) // Identify session row
+  userId           String    @unique // Link each session to a single user
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId        String    @unique
+  refreshTokenHash String
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([sessionId])
+}
