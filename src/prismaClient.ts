@@ -13,7 +13,9 @@ export const getPrismaClient = (): PrismaClient => {
 		throw new Error("DATABASE_URL is required to initialize PrismaClient");
 	}
 
-	prismaClient = new PrismaClient();
+	prismaClient = new PrismaClient({
+ 		datasources: { db: { url: connectionString } },
+ 	});
 
 	return prismaClient;
 };
