@@ -1,11 +1,11 @@
 import type { JobRole } from "../Models/jobRole";
 import { getPrismaClient } from "../prismaClient";
 
-export interface JobRoleDaoPort {
+export interface JobRoleDao {
 	getJobRoles(): Promise<readonly JobRole[]>;
 }
 
-export class JobRoleDao implements JobRoleDaoPort {
+export class PrismaJobRoleDao implements JobRoleDao {
 	public async getJobRoles(): Promise<readonly JobRole[]> {
 		const prisma = getPrismaClient();
 		const jobRoles = await prisma.jobRole.findMany({

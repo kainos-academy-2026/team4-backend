@@ -23,7 +23,7 @@ describe("job role mapper", () => {
 			location: "Leeds",
 			capabilityId: 1,
 			bandId: 3,
-			closingDate: "2026-10-01T12:00:00.000Z",
+			closingDate: new Date("2026-10-01T12:00:00.000Z"),
 			status: "Open",
 		});
 	});
@@ -56,8 +56,12 @@ describe("job role mapper", () => {
 		expect(result).toHaveLength(2);
 		expect(result[0]?.id).toBe(1);
 		expect(result[1]?.id).toBe(2);
-		expect(result[0]?.closingDate).toBe("2026-08-01T00:00:00.000Z");
-		expect(result[1]?.closingDate).toBe("2026-08-15T00:00:00.000Z");
+		expect(result[0]?.closingDate).toEqual(
+			new Date("2026-08-01T00:00:00.000Z"),
+		);
+		expect(result[1]?.closingDate).toEqual(
+			new Date("2026-08-15T00:00:00.000Z"),
+		);
 	});
 
 	it("returns an empty array when given no job roles", () => {

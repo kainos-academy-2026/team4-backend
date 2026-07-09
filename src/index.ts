@@ -1,13 +1,15 @@
 import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
 import jobRoleRouter from "./Routes/jobRoleRouter";
 
 const app = express();
-app.disable("x-powered-by");
 
 const envPort = process.env.PORT;
 const parsedPort = envPort !== undefined ? Number(envPort) : NaN;
 const port = Number.isFinite(parsedPort) ? parsedPort : 3000;
+
+app.use(helmet());
 
 app.get("/health", (_request, response) => {
 	response.json({

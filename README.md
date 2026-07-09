@@ -123,6 +123,12 @@ Auto-fix lint issues where possible:
 npm run lint:fix
 ```
 
+## Git Hooks
+
+This repository uses Husky to run lint checks before each commit.
+
+After installing dependencies, hooks are installed automatically via the `prepare` script.
+
 ## Notes
 
 - Prisma is already initialized in this repository, so you do not need to run `prisma init`.

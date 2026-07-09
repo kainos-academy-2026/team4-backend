@@ -14,8 +14,8 @@ export const getPrismaClient = (): PrismaClient => {
 	}
 
 	prismaClient = new PrismaClient({
- 		datasources: { db: { url: connectionString } },
- 	});
+		datasources: { db: { url: connectionString } },
+	});
 
 	return prismaClient;
 };

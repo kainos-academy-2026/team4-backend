@@ -4,7 +4,8 @@ const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
-const mockedJobRoleRouter = { __router: "jobRoleRouter" };
+const mockedHelmet = vi.fn(() => (req: any, res: any, next: any) => next());
+const mockedJobRoleRouter = { __type: "router" };
 const originalPort = process.env.PORT;
 
 vi.mock("express", () => {
@@ -19,6 +20,10 @@ vi.mock("express", () => {
 		default: expressFactory,
 	};
 });
+
+vi.mock("helmet", () => ({
+	default: mockedHelmet,
+}));
 
 vi.mock("../src/Routes/jobRoleRouter", () => ({
 	default: mockedJobRoleRouter,
@@ -46,8 +51,8 @@ describe("index route wiring", () => {
 	it("registers GET /health and returns status UP with parseable time", async () => {
 		await import("../src/index.ts");
 
-		expect(mockedDisable).toHaveBeenCalledWith("x-powered-by");
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
+		expect(mockedUse).toHaveBeenCalledWith(expect.any(Function));
 		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 
 		const healthCall = mockedGet.mock.calls.find(
@@ -74,6 +79,12 @@ describe("index route wiring", () => {
 		expect(payload?.status).toBe("UP");
 		expect(payload?.time).toBeTypeOf("string");
 		expect(Number.isNaN(Date.parse(payload?.time ?? ""))).toBe(false);
+	});
+
+	it("mounts the job role router", async () => {
+		await import("../src/index.ts");
+
+		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 	});
 
 	it("starts server on default port 3000 when PORT is not set", async () => {

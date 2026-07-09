@@ -1,11 +1,11 @@
-import type { JobRoleDaoPort } from "../Dao/jobRoleDao";
-import { JobRoleDao } from "../Dao/jobRoleDao";
+import type { JobRoleDao } from "../Dao/jobRoleDao";
+import { PrismaJobRoleDao } from "../Dao/jobRoleDao";
 import { JobRoleMapper } from "../Mappers/JobRoleMapper";
 import type { JobRoleResponse } from "../Models/jobRoleResponse";
 
 export class JobRoleService {
 	constructor(
-		private readonly jobRoleDao: JobRoleDaoPort = new JobRoleDao(),
+		private readonly jobRoleDao: JobRoleDao = new PrismaJobRoleDao(),
 		private readonly jobRoleMapper: JobRoleMapper = new JobRoleMapper(),
 	) {}
 

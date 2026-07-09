@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { JobRoleDao } from "../../src/Dao/jobRoleDao";
+import { PrismaJobRoleDao } from "../../src/Dao/jobRoleDao";
 
 const findManyMock = vi.hoisted(() => vi.fn());
 const getPrismaClientMock = vi.hoisted(() =>
@@ -21,7 +21,7 @@ describe("job role dao", () => {
 	});
 
 	it("returns job role records from prisma", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		findManyMock.mockResolvedValue([
 			{
 				id: 1,
@@ -57,7 +57,7 @@ describe("job role dao", () => {
 	});
 
 	it("converts closingDate string values to Date", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		findManyMock.mockResolvedValue([
 			{
 				id: 2,
@@ -80,7 +80,7 @@ describe("job role dao", () => {
 	});
 
 	it("keeps Date closingDate values unchanged by timestamp", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		const originalClosingDate = new Date("2026-10-01T12:00:00.000Z");
 		findManyMock.mockResolvedValue([
 			{
@@ -103,7 +103,7 @@ describe("job role dao", () => {
 	});
 
 	it("returns an empty array when prisma returns no job roles", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		findManyMock.mockResolvedValue([]);
 
 		const result = await dao.getJobRoles();
@@ -117,7 +117,7 @@ describe("job role dao", () => {
 	});
 
 	it("maps multiple records and preserves non-date fields", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		findManyMock.mockResolvedValue([
 			{
 				id: 4,
@@ -169,7 +169,7 @@ describe("job role dao", () => {
 	});
 
 	it("rethrows errors when prisma findMany fails", async () => {
-		const dao = new JobRoleDao();
+		const dao = new PrismaJobRoleDao();
 		const prismaError = new Error("db unavailable");
 		findManyMock.mockRejectedValue(prismaError);
 

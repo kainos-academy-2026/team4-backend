@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { JobRoleDao } from "../../src/Dao/jobRoleDao";
+import { PrismaJobRoleDao } from "../../src/Dao/jobRoleDao";
 import { JobRoleMapper } from "../../src/Mappers/JobRoleMapper";
 import type { JobRole } from "../../src/Models/jobRole";
 import { JobRoleService } from "../../src/Services/jobRoleService";
@@ -24,13 +24,13 @@ describe("job role service", () => {
 				location: "Manchester",
 				capabilityId: 1,
 				bandId: 2,
-				closingDate: "2026-08-01T00:00:00.000Z",
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
 				status: "Open",
 			},
 		];
 
 		const getJobRolesSpy = vi
-			.spyOn(JobRoleDao.prototype, "getJobRoles")
+			.spyOn(PrismaJobRoleDao.prototype, "getJobRoles")
 			.mockResolvedValue(mockJobRoles);
 
 		const mockMapper = new JobRoleMapper();
@@ -38,7 +38,7 @@ describe("job role service", () => {
 			.spyOn(mockMapper, "toResponses")
 			.mockReturnValue(mappedResponses);
 
-		const service = new JobRoleService(new JobRoleDao(), mockMapper);
+		const service = new JobRoleService(new PrismaJobRoleDao(), mockMapper);
 
 		const result = await service.getJobRoles();
 
@@ -79,7 +79,7 @@ describe("job role service", () => {
 				location: "Leeds",
 				capabilityId: 1,
 				bandId: 3,
-				closingDate: "2026-09-10T00:00:00.000Z",
+				closingDate: new Date("2026-09-10T00:00:00.000Z"),
 				status: "Open",
 			},
 		]);

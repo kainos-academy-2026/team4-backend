@@ -4,6 +4,6 @@ export type JobRoleResponse = {
 	location: string;
 	capabilityId: number;
 	bandId: number;
-	closingDate: string;
+	closingDate: Date;
 	status: string;
 };

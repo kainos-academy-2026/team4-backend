@@ -6,7 +6,7 @@ export interface JobRoleDto {
 	location: string;
 	capabilityId: number;
 	bandId: number;
-	closingDate: string;
+	closingDate: Date;
 	status: string;
 }
 
