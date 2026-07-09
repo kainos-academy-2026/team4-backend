@@ -16,6 +16,11 @@ export const readBearerToken = (
 		return;
 	}
 
-	response.locals.authToken = header.slice(AUTH_HEADER_PREFIX.length).trim();
+	const token = header.slice(AUTH_HEADER_PREFIX.length).trim();
+	if (!token) {
+		response.status(401).json({ message: "Missing Bearer token" });
+		return;
+	}
+	response.locals.authToken = token;
 	next();
 };
