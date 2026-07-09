@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -12,4 +13,32 @@ model User {
   passwordHash String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+}
+
+model Capability {
+  id             Int       @id @default(autoincrement())
+  capabilityName String
+  jobRoles       JobRole[]
+}
+
+model Band {
+  id       Int       @id @default(autoincrement())
+  bandName String
+  jobRoles JobRole[]
+}
+
+model JobRole {
+  id           Int      @id @default(autoincrement())
+  roleName     String
+  location     String
+  capabilityId Int
+  bandId       Int
+  closingDate  DateTime
+  status       String
+
+  capability Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  band       Band       @relation(fields: [bandId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([capabilityId])
+  @@index([bandId])
 }
