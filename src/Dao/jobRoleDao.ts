@@ -12,10 +12,16 @@ export class PrismaJobRoleDao implements JobRoleDao {
 			orderBy: {
 				id: "asc",
 			},
+			include: {
+				capability: true,
+				band: true,
+			},
 		});
 
 		return jobRoles.map((jobRole) => ({
 			...jobRole,
+			capabilityName: jobRole.capability.capabilityName,
+			bandName: jobRole.band.bandName,
 			closingDate:
 				jobRole.closingDate instanceof Date
 					? jobRole.closingDate

@@ -28,7 +28,9 @@ describe("job role dao", () => {
 				roleName: "Backend Engineer",
 				location: "Manchester",
 				capabilityId: 1,
+				capability: { id: 1, capabilityName: "Engineering" },
 				bandId: 2,
+				band: { id: 2, bandName: "Associate" },
 				closingDate: new Date("2026-08-01T00:00:00.000Z"),
 				status: "Open",
 			},
@@ -41,6 +43,10 @@ describe("job role dao", () => {
 			orderBy: {
 				id: "asc",
 			},
+			include: {
+				capability: true,
+				band: true,
+			},
 		});
 		expect(result).toHaveLength(1);
 		expect(result).toContainEqual(
@@ -49,7 +55,9 @@ describe("job role dao", () => {
 				roleName: "Backend Engineer",
 				location: "Manchester",
 				capabilityId: 1,
+				capabilityName: "Engineering",
 				bandId: 2,
+				bandName: "Associate",
 				status: "Open",
 			}),
 		);
@@ -64,7 +72,9 @@ describe("job role dao", () => {
 				roleName: "Frontend Engineer",
 				location: "London",
 				capabilityId: 3,
+				capability: { id: 3, capabilityName: "Design" },
 				bandId: 4,
+				band: { id: 4, bandName: "Senior" },
 				closingDate: "2026-09-15T10:30:00.000Z",
 				status: "Open",
 			},
@@ -88,7 +98,9 @@ describe("job role dao", () => {
 				roleName: "QA Engineer",
 				location: "Bristol",
 				capabilityId: 5,
+				capability: { id: 5, capabilityName: "Quality" },
 				bandId: 1,
+				band: { id: 1, bandName: "Trainee" },
 				closingDate: originalClosingDate,
 				status: "Closed",
 			},
@@ -113,6 +125,10 @@ describe("job role dao", () => {
 			orderBy: {
 				id: "asc",
 			},
+			include: {
+				capability: true,
+				band: true,
+			},
 		});
 	});
 
@@ -124,7 +140,9 @@ describe("job role dao", () => {
 				roleName: "Platform Engineer",
 				location: "Leeds",
 				capabilityId: 2,
+				capability: { id: 2, capabilityName: "Engineering" },
 				bandId: 3,
+				band: { id: 3, bandName: "Mid" },
 				closingDate: "2026-11-20T00:00:00.000Z",
 				status: "Open",
 			},
@@ -133,7 +151,9 @@ describe("job role dao", () => {
 				roleName: "DevOps Engineer",
 				location: "Remote",
 				capabilityId: 2,
+				capability: { id: 2, capabilityName: "Engineering" },
 				bandId: 4,
+				band: { id: 4, bandName: "Senior" },
 				closingDate: new Date("2026-12-01T00:00:00.000Z"),
 				status: "Open",
 			},

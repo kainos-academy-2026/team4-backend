@@ -8,7 +8,9 @@ export class JobRoleMapper {
 			roleName: jobRole.roleName,
 			location: jobRole.location,
 			capabilityId: jobRole.capabilityId,
+			capabilityName: jobRole.capabilityName,
 			bandId: jobRole.bandId,
+			bandName: jobRole.bandName,
 			closingDate: jobRole.closingDate,
 			status: jobRole.status,
 		};
