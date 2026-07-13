@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type User from "../../../src/model/user.model";
+import type User from "../../../src/Models/user.model";
 import type UserRepository from "../../../src/repositories/user.repo";
 import AppAuthService from "../../../src/Services/auth/appAuth.service";
 import type PasswordService from "../../../src/Services/auth/password/password.service";
