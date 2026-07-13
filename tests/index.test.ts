@@ -4,7 +4,7 @@ const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
-const mockedHelmet = vi.fn(() => (req: any, res: any, next: any) => next());
+const mockedHelmet = vi.fn(() => () => undefined);
 const mockedJobRoleRouter = { __type: "router" };
 const originalPort = process.env.PORT;
 

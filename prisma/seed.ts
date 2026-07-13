@@ -48,6 +48,12 @@ async function main(): Promise<void> {
 			bandId: b2.id,
 			closingDate: new Date("2026-08-01T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"We are looking for a Backend Engineer to join our growing Engineering capability. You will design, build, and maintain scalable server-side services and APIs that power our products.",
+			responsibilities:
+				"Design and implement RESTful APIs. Collaborate with frontend engineers and product teams. Write unit and integration tests. Participate in code reviews and contribute to technical standards.",
+			sharepointUrl: "https://kainos.sharepoint.com/job-roles/backend-engineer",
+			numberOfOpenPositions: 2,
 		},
 		create: {
 			id: 1,
@@ -57,6 +63,12 @@ async function main(): Promise<void> {
 			bandId: b2.id,
 			closingDate: new Date("2026-08-01T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"We are looking for a Backend Engineer to join our growing Engineering capability. You will design, build, and maintain scalable server-side services and APIs that power our products.",
+			responsibilities:
+				"Design and implement RESTful APIs. Collaborate with frontend engineers and product teams. Write unit and integration tests. Participate in code reviews and contribute to technical standards.",
+			sharepointUrl: "https://kainos.sharepoint.com/job-roles/backend-engineer",
+			numberOfOpenPositions: 2,
 		},
 	});
 
@@ -69,6 +81,12 @@ async function main(): Promise<void> {
 			bandId: b3.id,
 			closingDate: new Date("2026-08-15T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"Join our Design capability as a Product Designer. You will craft intuitive user experiences by working closely with engineers and stakeholders to translate requirements into polished interfaces.",
+			responsibilities:
+				"Create wireframes, prototypes, and high-fidelity designs. Conduct user research and usability testing. Define design systems and maintain component libraries. Collaborate in agile delivery teams.",
+			sharepointUrl: "https://kainos.sharepoint.com/job-roles/product-designer",
+			numberOfOpenPositions: 1,
 		},
 		create: {
 			id: 2,
@@ -78,6 +96,12 @@ async function main(): Promise<void> {
 			bandId: b3.id,
 			closingDate: new Date("2026-08-15T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"Join our Design capability as a Product Designer. You will craft intuitive user experiences by working closely with engineers and stakeholders to translate requirements into polished interfaces.",
+			responsibilities:
+				"Create wireframes, prototypes, and high-fidelity designs. Conduct user research and usability testing. Define design systems and maintain component libraries. Collaborate in agile delivery teams.",
+			sharepointUrl: "https://kainos.sharepoint.com/job-roles/product-designer",
+			numberOfOpenPositions: 1,
 		},
 	});
 
@@ -90,6 +114,11 @@ async function main(): Promise<void> {
 			bandId: b1.id,
 			closingDate: new Date("2026-08-20T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"We are seeking a QA Analyst to join our Quality capability. You will ensure software meets the highest standards by defining test strategies and identifying defects early in the development lifecycle.",
+			responsibilities:
+				"Write and execute manual and automated test cases. Raise and track defects through to resolution. Contribute to acceptance criteria definition. Support continuous improvement of QA processes.",
+			numberOfOpenPositions: 3,
 		},
 		create: {
 			id: 3,
@@ -99,6 +128,11 @@ async function main(): Promise<void> {
 			bandId: b1.id,
 			closingDate: new Date("2026-08-20T00:00:00.000Z"),
 			status: "Open",
+			description:
+				"We are seeking a QA Analyst to join our Quality capability. You will ensure software meets the highest standards by defining test strategies and identifying defects early in the development lifecycle.",
+			responsibilities:
+				"Write and execute manual and automated test cases. Raise and track defects through to resolution. Contribute to acceptance criteria definition. Support continuous improvement of QA processes.",
+			numberOfOpenPositions: 3,
 		},
 	});
 }

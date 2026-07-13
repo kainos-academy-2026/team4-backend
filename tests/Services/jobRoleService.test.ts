@@ -114,4 +114,69 @@ describe("job role service", () => {
 
 		await expect(service.getJobRoles()).rejects.toBe(daoError);
 	});
+
+	describe("JobRoleDetailedResponse", () => {
+		it("calls DAO and mapper, returns mapped detailed response", async () => {
+			const mockJobRole: JobRole = {
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				capabilityName: "Engineering",
+				bandId: 2,
+				bandName: "B2",
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+				description: "A backend role",
+				responsibilities: "Write code",
+			};
+
+			const mockDao = {
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: vi.fn(async () => mockJobRole),
+			};
+			const mockMapper = new JobRoleMapper();
+			const toResponseSpy = vi.spyOn(mockMapper, "JobRoleDetailedResponse");
+
+			const service = new JobRoleService(mockDao, mockMapper);
+			const result = await service.JobRoleDetailedResponse(1);
+
+			expect(mockDao.JobRoleDetailedResponse).toHaveBeenCalledWith(1);
+			expect(toResponseSpy).toHaveBeenCalledWith(mockJobRole);
+			expect(result).toMatchObject({ id: 1, roleName: "Backend Engineer" });
+
+			toResponseSpy.mockRestore();
+		});
+
+		it("returns null when DAO returns null without calling mapper", async () => {
+			const mockDao = {
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: vi.fn(async () => null),
+			};
+			const mockMapper = new JobRoleMapper();
+			const toResponseSpy = vi.spyOn(mockMapper, "JobRoleDetailedResponse");
+
+			const service = new JobRoleService(mockDao, mockMapper);
+			const result = await service.JobRoleDetailedResponse(999);
+
+			expect(result).toBeNull();
+			expect(toResponseSpy).not.toHaveBeenCalled();
+
+			toResponseSpy.mockRestore();
+		});
+
+		it("rethrows DAO errors unchanged", async () => {
+			const daoError = new Error("dao failure");
+			const mockDao = {
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: vi.fn(async () => {
+					throw daoError;
+				}),
+			};
+
+			const service = new JobRoleService(mockDao, new JobRoleMapper());
+
+			await expect(service.JobRoleDetailedResponse(1)).rejects.toBe(daoError);
+		});
+	});
 });
