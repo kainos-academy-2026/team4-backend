@@ -8,4 +8,8 @@ export type JobRoleResponse = {
 	bandName: string;
 	closingDate: Date;
 	status: string;
+	description: string;
+	responsibilities: string;
+	sharepointUrl?: string;
+	numberOfOpenPositions?: number;
 };

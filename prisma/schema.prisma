@@ -25,8 +25,12 @@ model JobRole {
   location     String
   capabilityId Int
   bandId       Int
-  closingDate  DateTime
-  status       String
+  closingDate           DateTime
+  status                String
+  description           String
+  responsibilities      String
+  sharepointUrl         String?
+  numberOfOpenPositions Int?
 
   capability Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   band       Band       @relation(fields: [bandId], references: [id], onDelete: Restrict, onUpdate: Cascade)
