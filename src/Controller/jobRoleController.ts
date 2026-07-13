@@ -26,7 +26,7 @@ export class JobRoleController {
 			const rawJobRoleId = request.params.id;
 			const jobRoleId = Number(rawJobRoleId);
 
-			if (!Number.isInteger(jobRoleId)) {
+			if (!Number.isSafeInteger(jobRoleId) || jobRoleId <= 0) {
 				response.status(400).json({ message: "Invalid job role id" });
 				return;
 			}

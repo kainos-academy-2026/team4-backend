@@ -191,6 +191,61 @@ describe("job role dao", () => {
 		);
 	});
 
+	it("normalizes null optional fields to undefined in getJobRoles", async () => {
+		const dao = new PrismaJobRoleDao();
+		findManyMock.mockResolvedValue([
+			{
+				id: 6,
+				roleName: "Data Engineer",
+				location: "Birmingham",
+				capabilityId: 2,
+				capability: { id: 2, capabilityName: "Engineering" },
+				bandId: 2,
+				band: { id: 2, bandName: "Associate" },
+				closingDate: "2026-11-30T00:00:00.000Z",
+				status: "Open",
+				description: "Role description",
+				responsibilities: "Role responsibilities",
+				sharepointUrl: null,
+				numberOfOpenPositions: null,
+			},
+		]);
+
+		const result = await dao.getJobRoles();
+
+		expect(result).toHaveLength(1);
+		expect(result[0]?.sharepointUrl).toBeUndefined();
+		expect(result[0]?.numberOfOpenPositions).toBeUndefined();
+		expect(result[0]?.closingDate).toBeInstanceOf(Date);
+	});
+
+	it("preserves optional fields when present in getJobRoles", async () => {
+		const dao = new PrismaJobRoleDao();
+		findManyMock.mockResolvedValue([
+			{
+				id: 7,
+				roleName: "Security Engineer",
+				location: "Remote",
+				capabilityId: 2,
+				capability: { id: 2, capabilityName: "Engineering" },
+				bandId: 4,
+				band: { id: 4, bandName: "Senior" },
+				closingDate: new Date("2026-12-15T00:00:00.000Z"),
+				status: "Open",
+				description: "Security role",
+				responsibilities: "Secure systems",
+				sharepointUrl: "https://example.com/job-role/7",
+				numberOfOpenPositions: 2,
+			},
+		]);
+
+		const result = await dao.getJobRoles();
+
+		expect(result).toHaveLength(1);
+		expect(result[0]?.sharepointUrl).toBe("https://example.com/job-role/7");
+		expect(result[0]?.numberOfOpenPositions).toBe(2);
+	});
+
 	it("rethrows errors when prisma findMany fails", async () => {
 		const dao = new PrismaJobRoleDao();
 		const prismaError = new Error("db unavailable");
@@ -268,6 +323,61 @@ describe("job role dao", () => {
 			expect(result?.closingDate.toISOString()).toBe(
 				"2026-09-01T00:00:00.000Z",
 			);
+		});
+
+		it("normalizes null optional fields to undefined in detailed response", async () => {
+			const dao = new PrismaJobRoleDao();
+			findUniqueMock.mockResolvedValue({
+				id: 11,
+				roleName: "Site Reliability Engineer",
+				location: "Leeds",
+				capabilityId: 1,
+				capability: { id: 1, capabilityName: "Engineering" },
+				bandId: 3,
+				band: { id: 3, bandName: "B3" },
+				closingDate: "2026-10-20T00:00:00.000Z",
+				status: "Open",
+				description: "SRE role",
+				responsibilities: "Improve reliability",
+				sharepointUrl: null,
+				numberOfOpenPositions: null,
+			});
+
+			const result = await dao.JobRoleDetailedResponse(11);
+
+			expect(result).not.toBeNull();
+			expect(result?.sharepointUrl).toBeUndefined();
+			expect(result?.numberOfOpenPositions).toBeUndefined();
+			expect(result?.closingDate).toBeInstanceOf(Date);
+			expect(result?.closingDate.toISOString()).toBe(
+				"2026-10-20T00:00:00.000Z",
+			);
+		});
+
+		it("preserves optional fields in detailed response when present", async () => {
+			const dao = new PrismaJobRoleDao();
+			findUniqueMock.mockResolvedValue({
+				id: 12,
+				roleName: "Data Scientist",
+				location: "London",
+				capabilityId: 4,
+				capability: { id: 4, capabilityName: "Data" },
+				bandId: 5,
+				band: { id: 5, bandName: "Lead" },
+				closingDate: new Date("2026-11-10T00:00:00.000Z"),
+				status: "Open",
+				description: "Data science role",
+				responsibilities: "Build models",
+				sharepointUrl: "https://example.com/job-role/12",
+				numberOfOpenPositions: 1,
+			});
+
+			const result = await dao.JobRoleDetailedResponse(12);
+
+			expect(result).not.toBeNull();
+			expect(result?.sharepointUrl).toBe("https://example.com/job-role/12");
+			expect(result?.numberOfOpenPositions).toBe(1);
+			expect(result?.closingDate).toBeInstanceOf(Date);
 		});
 
 		it("rethrows errors when prisma findUnique fails", async () => {

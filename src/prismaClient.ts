@@ -8,7 +8,7 @@ export const getPrismaClient = (): PrismaClient => {
 		return prismaClient;
 	}
 
-	const connectionString = process.env.DATABASE_URL;
+	const connectionString = process.env.DATABASE_URL?.trim();
 	if (!connectionString) {
 		throw new Error("DATABASE_URL is required to initialize PrismaClient");
 	}
