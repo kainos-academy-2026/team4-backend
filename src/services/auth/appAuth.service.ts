@@ -32,4 +32,9 @@ export default class AppAuthService implements AuthService {
 
 		return { accessToken };
 	}
+
+	async logout(): Promise<void> {
+		// Header token strategy MVP: client removes token from browser session.
+		return;
+	}
 }
