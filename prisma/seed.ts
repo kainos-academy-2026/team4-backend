@@ -172,12 +172,12 @@ async function main(): Promise<void> {
 	});
 
 	const enableDevTestUser = isTrue(process.env.ENABLE_DEV_TEST_USER);
-	const nodeEnv = getEnv("NODE_ENV", "development");
+	const nodeEnv = process.env.NODE_ENV?.trim();
 
-	// Safety: never seed a known test login outside development.
-	if (nodeEnv !== "development" && enableDevTestUser) {
+	// Safety: seed known test logins only when NODE_ENV is explicitly development.
+	if (enableDevTestUser && nodeEnv !== "development") {
 		throw new Error(
-			"ENABLE_DEV_TEST_USER is only allowed when NODE_ENV=development",
+			"ENABLE_DEV_TEST_USER requires NODE_ENV=development (explicitly set)",
 		);
 	}
 
