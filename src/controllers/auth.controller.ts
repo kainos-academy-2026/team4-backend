@@ -23,4 +23,16 @@ export class AuthController {
 			response.status(500).json({ message: "Internal server error" });
 		}
 	};
+
+	public logout = async (
+		_request: Request,
+		response: Response,
+	): Promise<void> => {
+		try {
+			await this.authService.logout();
+			response.status(204).send();
+		} catch {
+			response.status(500).json({ message: "Internal server error" });
+		}
+	};
 }

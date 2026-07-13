@@ -4,8 +4,17 @@ const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
-const mockedHelmet = vi.fn(() => () => undefined);
+const mockedPost = vi.fn();
+const mockedJson = vi.fn(
+	() => (_req: unknown, _res: unknown, next: () => void) => next(),
+);
+const mockedHelmet = vi.fn(
+	() => (_req: unknown, _res: unknown, next: () => void) => next(),
+);
 const mockedJobRoleRouter = { __type: "router" };
+const mockedExpressRouter = {
+	post: mockedPost,
+};
 const originalPort = process.env.PORT;
 
 vi.mock("express", () => {
@@ -15,9 +24,11 @@ vi.mock("express", () => {
 		use: mockedUse,
 		listen: mockedListen,
 	}));
+	Object.assign(expressFactory, { json: mockedJson });
 
 	return {
 		default: expressFactory,
+		Router: vi.fn(() => mockedExpressRouter),
 	};
 });
 
@@ -34,6 +45,8 @@ describe("index route wiring", () => {
 		mockedDisable.mockClear();
 		mockedGet.mockClear();
 		mockedUse.mockClear();
+		mockedPost.mockClear();
+		mockedJson.mockClear();
 		mockedListen.mockClear();
 		vi.resetModules();
 		delete process.env.PORT;

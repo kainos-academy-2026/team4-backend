@@ -40,4 +40,4 @@ authRouter.post(
 	controller.login,
 );
 
-// TODO: implement logout
+authRouter.post("/logout", controller.logout);

@@ -1,6 +1,19 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import argon2 from "argon2";
 
 const prisma = new PrismaClient();
+
+const getEnv = (name: string, fallback: string): string => {
+	const value = process.env[name];
+	if (!value || !value.trim()) {
+		return fallback;
+	}
+
+	return value;
+};
+
+const isTrue = (value: string | undefined): boolean => value === "true";
 
 async function main(): Promise<void> {
 	const engineering = await prisma.capability.upsert({
@@ -135,6 +148,36 @@ async function main(): Promise<void> {
 			numberOfOpenPositions: 3,
 		},
 	});
+
+	const enableDevTestUser = isTrue(process.env.ENABLE_DEV_TEST_USER);
+	const nodeEnv = getEnv("NODE_ENV", "development");
+
+	// Safety: never seed a known test login outside development.
+	if (nodeEnv !== "development" && enableDevTestUser) {
+		throw new Error(
+			"ENABLE_DEV_TEST_USER is only allowed when NODE_ENV=development",
+		);
+	}
+
+	// In local dev, this creates/updates one test login account.
+	if (nodeEnv === "development" && enableDevTestUser) {
+		const testUserEmail = getEnv("TEST_USER_EMAIL", "test@example.com");
+		const testUserPassword = getEnv("TEST_USER_PASSWORD", "Password123!");
+		const testUserPasswordHash = await argon2.hash(testUserPassword);
+
+		await prisma.user.upsert({
+			where: { email: testUserEmail },
+			update: {
+				passwordHash: testUserPasswordHash,
+			},
+			create: {
+				email: testUserEmail,
+				passwordHash: testUserPasswordHash,
+			},
+		});
+
+		console.log(`Seeded auth test user: ${testUserEmail}`);
+	}
 }
 
 main()

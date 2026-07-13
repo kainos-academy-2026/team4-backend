@@ -21,6 +21,11 @@ docker compose up -d
 ```env
 DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
 PORT=3000
+JWT_ACCESS_SECRET="replace_with_128_hex_chars"
+JWT_REFRESH_SECRET="replace_with_128_hex_chars"
+ENABLE_DEV_TEST_USER="false"
+TEST_USER_EMAIL="test@example.com"
+TEST_USER_PASSWORD="Password123!"
 ```
 
 4. Apply migrations:
@@ -74,6 +79,11 @@ docker compose up -d
 ```env
 DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
 PORT=3000
+JWT_ACCESS_SECRET="replace_with_128_hex_chars"
+JWT_REFRESH_SECRET="replace_with_128_hex_chars"
+ENABLE_DEV_TEST_USER="false"
+TEST_USER_EMAIL="test@example.com"
+TEST_USER_PASSWORD="Password123!"
 ```
 
 4. Run database migrations:
@@ -87,6 +97,10 @@ npx prisma migrate dev
 ```bash
 npm run db:seed
 ```
+
+To seed a local auth test user, set `ENABLE_DEV_TEST_USER="true"` in your local `.env`.
+Then `npm run db:seed` will upsert that user with an Argon2 password hash using
+`TEST_USER_EMAIL` and `TEST_USER_PASSWORD`.
 
 ## Run The API
 
