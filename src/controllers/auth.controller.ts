@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import type { LoginRequestDto } from "../dto/loginRequest.dto";
-import type AuthService from "../services/auth/auth.service";
+import type { LoginRequestDto } from "../Dto/loginRequest.dto";
+import InvalidCredentialsError from "../Services/auth/errors/invalidCredentials.error";
+import type AuthService from "../Services/auth/auth.service";
 
 export class AuthController {
 	public constructor(private readonly authService: AuthService) {}
@@ -15,7 +16,7 @@ export class AuthController {
 			const result = await this.authService.login(dto); // TODO: set refresh cookie: HttpOnly + Secure + SameSite=Strict
 			response.status(200).json(result);
 		} catch (error) {
-			if (error instanceof Error && error.message === "Invalid credentials") {
+			if (error instanceof InvalidCredentialsError) {
 				response.status(401).json({ message: "Invalid credentials" });
 				return;
 			}

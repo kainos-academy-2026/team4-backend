@@ -10,7 +10,7 @@ export const readBearerToken = (
 	response: Response,
 	next: NextFunction,
 ): void => {
-	const header = request.header("authorization") ?? "";
+	const header = request.header("Authorization") ?? "";
 	if (!header.startsWith(AUTH_HEADER_PREFIX)) {
 		response.status(401).json({ message: "Missing Bearer token" });
 		return;
