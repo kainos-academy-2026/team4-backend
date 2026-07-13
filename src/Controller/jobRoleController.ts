@@ -24,9 +24,19 @@ export class JobRoleController {
 	): Promise<void> => {
 		try {
 			const rawJobRoleId = request.params.id;
+
+			// Only accept plain positive integer strings as route ids.
+			if (
+				typeof rawJobRoleId !== "string" ||
+				!/^[1-9]\d*$/.test(rawJobRoleId)
+			) {
+				response.status(400).json({ message: "Invalid job role id" });
+				return;
+			}
+
 			const jobRoleId = Number(rawJobRoleId);
 
-			if (!Number.isSafeInteger(jobRoleId) || jobRoleId <= 0) {
+			if (!Number.isSafeInteger(jobRoleId)) {
 				response.status(400).json({ message: "Invalid job role id" });
 				return;
 			}

@@ -14,10 +14,6 @@ export class JobRoleMapper {
 			bandName: jobRole.bandName,
 			closingDate: jobRole.closingDate,
 			status: jobRole.status,
-			description: jobRole.description,
-			responsibilities: jobRole.responsibilities,
-			sharepointUrl: jobRole.sharepointUrl,
-			numberOfOpenPositions: jobRole.numberOfOpenPositions,
 		};
 	}
 	public JobRoleDetailedResponse(jobRole: JobRole): JobRoleDetailedResponse {

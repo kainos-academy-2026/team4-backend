@@ -165,6 +165,31 @@ describe("job role controller", () => {
 			expect(next).not.toHaveBeenCalled();
 		});
 
+		it("returns 400 for scientific notation id string", async () => {
+			const mockedDetailedResponse = vi.fn();
+			const controller = new JobRoleController({
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: mockedDetailedResponse,
+			} as unknown as JobRoleService);
+
+			const status = vi.fn(() => response);
+			const json = vi.fn();
+			const response = { status, json };
+			const next = vi.fn();
+			const request = { params: { id: "1e2" } };
+
+			await controller.JobRoleDetailedResponse(
+				request as never,
+				response as never,
+				next,
+			);
+
+			expect(status).toHaveBeenCalledWith(400);
+			expect(json).toHaveBeenCalledWith({ message: "Invalid job role id" });
+			expect(mockedDetailedResponse).not.toHaveBeenCalled();
+			expect(next).not.toHaveBeenCalled();
+		});
+
 		it("returns 400 for a negative integer id", async () => {
 			const mockedDetailedResponse = vi.fn(async () => null);
 			const controller = new JobRoleController({
