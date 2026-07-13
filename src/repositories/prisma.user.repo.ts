@@ -1,6 +1,6 @@
 // Talks to Database - finds user row by email
 import type { PrismaClient } from "@prisma/client";
-import type User from "../model/user.model";
+import type User from "../Models/user.model";
 import type UserRepository from "./user.repo";
 
 export default class PrismaUserRepository implements UserRepository {

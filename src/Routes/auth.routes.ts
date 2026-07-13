@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
-import { AuthController } from "../controllers/auth.controller";
+import { AuthController } from "../Controller/auth.controller";
 import PrismaUserRepository from "../repositories/prisma.user.repo";
-import AppAuthService from "../services/auth/appAuth.service";
-import ArgonPasswordService from "../services/auth/password/argonPassword.service";
-import JoseTokenService from "../services/auth/token/joseToken.service";
+import AppAuthService from "../Services/auth/appAuth.service";
+import ArgonPasswordService from "../Services/auth/password/argonPassword.service";
+import JoseTokenService from "../Services/auth/token/joseToken.service";
 
 const prisma = new PrismaClient();
 const userRepository = new PrismaUserRepository(prisma);

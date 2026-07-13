@@ -24,25 +24,25 @@ vi.mock("../../src/repositories/prisma.user.repo", () => ({
 	}),
 }));
 
-vi.mock("../../src/services/auth/password/argonPassword.service", () => ({
+vi.mock("../../src/Services/auth/password/argonPassword.service", () => ({
 	default: vi.fn(function ArgonPasswordServiceMock() {
 		return {};
 	}),
 }));
 
-vi.mock("../../src/services/auth/token/joseToken.service", () => ({
+vi.mock("../../src/Services/auth/token/joseToken.service", () => ({
 	default: vi.fn(function JoseTokenServiceMock() {
 		return {};
 	}),
 }));
 
-vi.mock("../../src/services/auth/appAuth.service", () => ({
+vi.mock("../../src/Services/auth/appAuth.service", () => ({
 	default: vi.fn(function AppAuthServiceMock() {
 		return {};
 	}),
 }));
 
-vi.mock("../../src/controllers/auth.controller", () => ({
+vi.mock("../../src/Controller/auth.controller", () => ({
 	AuthController: vi.fn(function AuthControllerMock() {
 		return mockedController;
 	}),
@@ -55,7 +55,7 @@ describe("authRouter", () => {
 	});
 
 	it("registers POST /login and POST /logout routes", async () => {
-		await import("../../src/routes/auth.routes");
+		await import("../../src/Routes/auth.routes");
 
 		expect(mockedPost).toHaveBeenCalledTimes(2);
 		expect(mockedPost).toHaveBeenCalledWith(
@@ -67,7 +67,7 @@ describe("authRouter", () => {
 	});
 
 	it("returns 400 when login payload is invalid", async () => {
-		await import("../../src/routes/auth.routes");
+		await import("../../src/Routes/auth.routes");
 
 		const loginCall = mockedPost.mock.calls.find(
 			(call) => call[0] === "/login",
@@ -95,7 +95,7 @@ describe("authRouter", () => {
 	});
 
 	it("passes valid login payload to next middleware", async () => {
-		await import("../../src/routes/auth.routes");
+		await import("../../src/Routes/auth.routes");
 
 		const loginCall = mockedPost.mock.calls.find(
 			(call) => call[0] === "/login",

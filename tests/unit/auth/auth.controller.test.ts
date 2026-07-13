@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthController } from "../../../src/controllers/auth.controller";
+import { AuthController } from "../../../src/Controller/auth.controller";
 import type AuthService from "../../../src/Services/auth/auth.service";
 import InvalidCredentialsError from "../../../src/Services/auth/errors/invalidCredentials.error";
 
