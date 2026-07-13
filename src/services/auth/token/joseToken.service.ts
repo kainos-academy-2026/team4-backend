@@ -13,7 +13,11 @@ export default class JoseTokenService implements TokenService {
 		const secret = new TextEncoder().encode(accessSecret);
 		const { SignJWT } = await import("jose");
 
-		return await new SignJWT({ userId: user.id, email: user.email })
+		return await new SignJWT({
+			userId: user.id,
+			email: user.email,
+			role: user.role,
+		})
 			.setProtectedHeader({ alg: "HS256" })
 			.setIssuedAt()
 			.setExpirationTime("1h")

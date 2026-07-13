@@ -15,6 +15,28 @@ const getEnv = (name: string, fallback: string): string => {
 
 const isTrue = (value: string | undefined): boolean => value === "true";
 
+const seedAuthUser = async (input: {
+	email: string;
+	password: string;
+	role: "user" | "admin";
+}): Promise<void> => {
+	const passwordHash = await argon2.hash(input.password);
+
+	// Keep login data stable for local testing.
+	await prisma.user.upsert({
+		where: { email: input.email },
+		update: {
+			role: input.role,
+			passwordHash,
+		},
+		create: {
+			email: input.email,
+			role: input.role,
+			passwordHash,
+		},
+	});
+};
+
 async function main(): Promise<void> {
 	const engineering = await prisma.capability.upsert({
 		where: { id: 1 },
@@ -159,24 +181,26 @@ async function main(): Promise<void> {
 		);
 	}
 
-	// In local dev, this creates/updates one test login account.
+	// In local dev, this creates/updates the two login accounts we need.
 	if (nodeEnv === "development" && enableDevTestUser) {
-		const testUserEmail = getEnv("TEST_USER_EMAIL", "test@example.com");
-		const testUserPassword = getEnv("TEST_USER_PASSWORD", "Password123!");
-		const testUserPasswordHash = await argon2.hash(testUserPassword);
+		const applicantEmail = getEnv("TEST_USER_EMAIL", "test@example.com");
+		const applicantPassword = getEnv("TEST_USER_PASSWORD", "Password123!");
+		const adminEmail = getEnv("TEST_ADMIN_EMAIL", "admin@example.com");
+		const adminPassword = getEnv("TEST_ADMIN_PASSWORD", "AdminPassword123!");
 
-		await prisma.user.upsert({
-			where: { email: testUserEmail },
-			update: {
-				passwordHash: testUserPasswordHash,
-			},
-			create: {
-				email: testUserEmail,
-				passwordHash: testUserPasswordHash,
-			},
+		await seedAuthUser({
+			email: applicantEmail,
+			password: applicantPassword,
+			role: "user",
 		});
 
-		console.log(`Seeded auth test user: ${testUserEmail}`);
+		await seedAuthUser({
+			email: adminEmail,
+			password: adminPassword,
+			role: "admin",
+		});
+
+		console.log(`Seeded auth users: ${applicantEmail}, ${adminEmail}`);
 	}
 }
 

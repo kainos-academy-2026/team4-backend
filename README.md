@@ -26,6 +26,8 @@ JWT_REFRESH_SECRET="replace_with_128_hex_chars"
 ENABLE_DEV_TEST_USER="false"
 TEST_USER_EMAIL="test@example.com"
 TEST_USER_PASSWORD="Password123!"
+TEST_ADMIN_EMAIL="admin@example.com"
+TEST_ADMIN_PASSWORD="AdminPassword123!"
 ```
 
 4. Apply migrations:
@@ -84,6 +86,8 @@ JWT_REFRESH_SECRET="replace_with_128_hex_chars"
 ENABLE_DEV_TEST_USER="false"
 TEST_USER_EMAIL="test@example.com"
 TEST_USER_PASSWORD="Password123!"
+TEST_ADMIN_EMAIL="admin@example.com"
+TEST_ADMIN_PASSWORD="AdminPassword123!"
 ```
 
 4. Run database migrations:
@@ -98,9 +102,9 @@ npx prisma migrate dev
 npm run db:seed
 ```
 
-To seed a local auth test user, set `ENABLE_DEV_TEST_USER="true"` in your local `.env`.
-Then `npm run db:seed` will upsert that user with an Argon2 password hash using
-`TEST_USER_EMAIL` and `TEST_USER_PASSWORD`.
+To seed local auth users, set `ENABLE_DEV_TEST_USER="true"` in your local `.env`.
+Then `npm run db:seed` will upsert one `user` and one `admin` account with Argon2
+password hashes using the `TEST_*` variables.
 
 ## Run The API
 
