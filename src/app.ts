@@ -1,5 +1,5 @@
 import express from "express";
-import { authRouter } from "./Routes/auth.routes";
+import { authRouter } from "./routes/auth.routes";
 
 const app = express();
 app.disable("x-powered-by");
