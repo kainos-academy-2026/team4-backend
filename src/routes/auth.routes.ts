@@ -1,3 +1,4 @@
+import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 import { AuthController } from "../controllers/auth.controller";
@@ -5,7 +6,6 @@ import PrismaUserRepository from "../repositories/prisma.user.repo";
 import AppAuthService from "../Services/auth/appAuth.service";
 import ArgonPasswordService from "../Services/auth/password/argonPassword.service";
 import JoseTokenService from "../Services/auth/token/joseToken.service";
-import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const userRepository = new PrismaUserRepository(prisma);
@@ -25,15 +25,19 @@ const loginSchema = z.object({
 
 export const authRouter: Router = Router();
 
-authRouter.post("/login", (request, response, next) => {
-	const parsed = loginSchema.safeParse(request.body);
-	if (!parsed.success) {
-		response.status(400).json({ message: "Invalid login payload" });
-		return;
-	}
+authRouter.post(
+	"/login",
+	(request, response, next) => {
+		const parsed = loginSchema.safeParse(request.body);
+		if (!parsed.success) {
+			response.status(400).json({ message: "Invalid login payload" });
+			return;
+		}
 
-	request.body = parsed.data;
-	next();
-}, controller.login);
+		request.body = parsed.data;
+		next();
+	},
+	controller.login,
+);
 
 // TODO: implement logout
