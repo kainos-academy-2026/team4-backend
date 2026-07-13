@@ -1,5 +1,6 @@
 // Create and signs a JWT containing the user ID and email
 
+import { ACCESS_TOKEN_TTL } from "../../../constants";
 import type User from "../../../model/user.model";
 import type TokenService from "./token.service";
 
@@ -20,7 +21,7 @@ export default class JoseTokenService implements TokenService {
 		})
 			.setProtectedHeader({ alg: "HS256" })
 			.setIssuedAt()
-			.setExpirationTime("1h")
+			.setExpirationTime(ACCESS_TOKEN_TTL)
 			.sign(secret);
 	}
 }

@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type User from "../../../src/model/user.model";
 import type UserRepository from "../../../src/repositories/user.repo";
-import AppAuthService from "../../../src/services/auth/appAuth.service";
-import type PasswordService from "../../../src/services/auth/password/password.service";
-import type TokenService from "../../../src/services/auth/token/token.service";
+import AppAuthService from "../../../src/Services/auth/appAuth.service";
+import type PasswordService from "../../../src/Services/auth/password/password.service";
+import type TokenService from "../../../src/Services/auth/token/token.service";
 
 // MOCK DATA AND DEPENDENCIES
 // Fake implementations of the dependencies that AppAuthService relies on
@@ -21,9 +22,10 @@ const mockTokenService: TokenService = {
 
 // SHARED TEST DATA
 // Fake user row
-const fakeUser = {
+const fakeUser: User = {
 	id: "user-123",
 	email: "test@example.com",
+	role: "user",
 	passwordHash: "hashed-password",
 	createdAt: new Date(),
 	updatedAt: new Date(),
