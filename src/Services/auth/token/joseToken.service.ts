@@ -5,18 +5,21 @@ import type User from "../../../Models/user.model";
 import type TokenService from "./token.service";
 
 export default class JoseTokenService implements TokenService {
-	async create(user: User): Promise<string> {
+	private readonly secret: Buffer;
+
+	constructor() {
 		const accessSecret = process.env.JWT_ACCESS_SECRET;
 		if (!accessSecret) {
 			throw new Error("JWT_ACCESS_SECRET is not set");
 		}
-		if (!/^[0-9a-fA-F]{128}$/.test(accessSecret)) {
-			throw new Error(
-				"JWT_ACCESS_SECRET must be 128 hex characters (64 bytes)",
-			);
+		if (accessSecret.length < 128) {
+			throw new Error("JWT_ACCESS_SECRET must be at least 128 characters");
 		}
 
-		const secret = Buffer.from(accessSecret, "hex");
+		this.secret = Buffer.from(accessSecret);
+	}
+
+	async create(user: User): Promise<string> {
 		const { SignJWT } = await import("jose");
 
 		return await new SignJWT({
@@ -27,6 +30,6 @@ export default class JoseTokenService implements TokenService {
 			.setProtectedHeader({ alg: "HS256" })
 			.setIssuedAt()
 			.setExpirationTime(ACCESS_TOKEN_TTL)
-			.sign(secret);
+			.sign(this.secret);
 	}
 }
