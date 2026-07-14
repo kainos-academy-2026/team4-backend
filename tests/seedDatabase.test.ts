@@ -131,10 +131,7 @@ describe("seedDatabase", () => {
 
 		await runSeed();
 
-		expect(consoleErrorSpy).toHaveBeenNthCalledWith(
-			1,
-			"Database seed failed.",
-		);
+		expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, "Database seed failed.");
 		expect(consoleErrorSpy).toHaveBeenNthCalledWith(2, seedError);
 		expect(prisma.$disconnect).toHaveBeenCalledTimes(1);
 		expect(process.exitCode).toBe(1);
