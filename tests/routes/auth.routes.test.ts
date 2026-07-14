@@ -12,10 +12,8 @@ vi.mock("express", () => ({
 	Router: vi.fn(() => mockedRouter),
 }));
 
-vi.mock("@prisma/client", () => ({
-	PrismaClient: vi.fn(function PrismaClientMock() {
-		return {};
-	}),
+vi.mock("../../src/prismaClient", () => ({
+	getPrismaClient: vi.fn(() => ({})),
 }));
 
 vi.mock("../../src/repositories/prisma.user.repo", () => ({
