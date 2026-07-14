@@ -11,7 +11,9 @@ export default class JoseTokenService implements TokenService {
 			throw new Error("JWT_ACCESS_SECRET is not set");
 		}
 		if (!/^[0-9a-fA-F]{128}$/.test(accessSecret)) {
-			throw new Error("JWT_ACCESS_SECRET must be 128 hex characters (64 bytes)");
+			throw new Error(
+				"JWT_ACCESS_SECRET must be 128 hex characters (64 bytes)",
+			);
 		}
 
 		const secret = Buffer.from(accessSecret, "hex");
