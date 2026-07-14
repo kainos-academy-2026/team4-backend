@@ -1,7 +1,7 @@
 import type { JobRoleDao } from "../dao/jobRoleDao";
 import { PrismaJobRoleDao } from "../dao/jobRoleDao";
-import { JobRoleMapper } from "../mappers/JobRoleMapper";
-import type { JobRoleDetailedResponse } from "../models/JobRoleDetailedResponse";
+import { JobRoleMapper } from "../mappers/jobRoleMapper";
+import type { JobRoleDetailedResponse } from "../models/jobRoleDetailedResponse";
 import type { JobRoleResponse } from "../models/jobRoleResponse";
 
 export class JobRoleService {

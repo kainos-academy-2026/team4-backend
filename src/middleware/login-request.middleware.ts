@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { LoginRequestSchema } from "../dto/loginRequest.dto";
+import { LoginRequestSchema } from "../dto/loginRequestDto";
 
 export const validateLoginRequest = (
 	request: Request,

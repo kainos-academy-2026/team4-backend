@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type User from "../../../src/models/user.model";
-import type UserRepository from "../../../src/repositories/user.repo";
-import AppAuthService from "../../../src/services/auth/appAuth.service";
-import type PasswordService from "../../../src/services/auth/password/password.service";
-import type TokenService from "../../../src/services/auth/token/token.service";
+import type User from "../../../src/models/userModel";
+import type UserRepository from "../../../src/repositories/userRepo";
+import AppAuthService from "../../../src/services/auth/appAuthService";
+import type PasswordService from "../../../src/services/auth/password/passwordService";
+import type TokenService from "../../../src/services/auth/token/tokenService";
 
 // MOCK DATA AND DEPENDENCIES
 // Fake implementations of the dependencies that AppAuthService relies on

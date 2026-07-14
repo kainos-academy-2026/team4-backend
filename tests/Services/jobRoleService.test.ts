@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { PrismaJobRoleDao } from "../../src/dao/jobRoleDao";
-import { JobRoleMapper } from "../../src/mappers/JobRoleMapper";
+import { JobRoleMapper } from "../../src/mappers/jobRoleMapper";
 import type { JobRole } from "../../src/models/jobRole";
 import { JobRoleService } from "../../src/services/jobRoleService";
 

@@ -1,10 +1,10 @@
-import type { LoginRequestDto } from "../../dto/loginRequest.dto";
-import type { LoginResponseDto } from "../../dto/loginResponse.dto";
-import type UserRepository from "../../repositories/user.repo";
-import type AuthService from "./auth.service";
-import InvalidCredentialsError from "./errors/invalidCredentials.error";
-import type PasswordService from "./password/password.service";
-import type TokenService from "./token/token.service";
+import type { LoginRequestDto } from "../../dto/loginRequestDto";
+import type { LoginResponseDto } from "../../dto/loginResponseDto";
+import type UserRepository from "../../repositories/userRepo";
+import type AuthService from "./authService";
+import InvalidCredentialsError from "./errors/invalidCredentialsError";
+import type PasswordService from "./password/passwordService";
+import type TokenService from "./token/tokenService";
 
 export default class AppAuthService implements AuthService {
 	constructor(

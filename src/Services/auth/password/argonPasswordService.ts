@@ -1,6 +1,6 @@
 // Compares plaintext password with hashed password stored in Database
 import argon2 from "argon2";
-import type PasswordService from "./password.service";
+import type PasswordService from "./passwordService";
 
 // Fixed dummy hash used when no user hash is available to reduce timing variance.
 const DUMMY_PASSWORD_HASH =

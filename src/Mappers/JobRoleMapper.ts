@@ -1,5 +1,5 @@
-import type { JobRoleDetailedResponse } from "../models/JobRoleDetailedResponse";
 import type { JobRole } from "../models/jobRole";
+import type { JobRoleDetailedResponse } from "../models/jobRoleDetailedResponse";
 import type { JobRoleResponse } from "../models/jobRoleResponse";
 
 export class JobRoleMapper {

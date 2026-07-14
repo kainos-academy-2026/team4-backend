@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import type { LoginRequestDto } from "../dto/loginRequest.dto";
-import type AuthService from "../services/auth/auth.service";
-import InvalidCredentialsError from "../services/auth/errors/invalidCredentials.error";
+import type { LoginRequestDto } from "../dto/loginRequestDto";
+import type AuthService from "../services/auth/authService";
+import InvalidCredentialsError from "../services/auth/errors/invalidCredentialsError";
 
 export class AuthController {
 	public constructor(private readonly authService: AuthService) {}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JobRoleMapper } from "../../src/mappers/JobRoleMapper";
+import { JobRoleMapper } from "../../src/mappers/jobRoleMapper";
 import type { JobRole } from "../../src/models/jobRole";
 
 describe("job role mapper", () => {

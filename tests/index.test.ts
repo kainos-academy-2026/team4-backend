@@ -41,7 +41,7 @@ vi.mock("../src/routes/jobRoleRouter", () => ({
 	default: mockedJobRoleRouter,
 }));
 
-vi.mock("../src/routes/auth.routes", () => ({
+vi.mock("../src/routes/authRoutes", () => ({
 	authRouter: mockedAuthRouter,
 }));
 
