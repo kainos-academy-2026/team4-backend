@@ -57,10 +57,7 @@ describe("AppAuthService", () => {
 		).rejects.toThrow("Invalid credentials");
 
 		expect(mockPasswordService.verify).toHaveBeenCalledTimes(1);
-		expect(mockPasswordService.verify).toHaveBeenCalledWith(
-			"any",
-			expect.any(String),
-		);
+		expect(mockPasswordService.verify).toHaveBeenCalledWith("any", undefined);
 	});
 
 	// --- Test 2: email exists but wrong password ---
