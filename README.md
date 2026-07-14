@@ -10,17 +10,16 @@ Team4 Backend
 npm install
 ```
 
-2. Start the database:
+2. Create a `.env` file from the committed template:
+
+```bash
+cp .env.example .env
+```
+
+3. Start the database:
 
 ```bash
 docker compose up -d
-```
-
-3. Create a `.env` file in the project root:
-
-```env
-DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
-PORT=3000
 ```
 
 4. Apply migrations:
@@ -29,7 +28,13 @@ PORT=3000
 npx prisma migrate dev
 ```
 
-5. Start the API:
+5. Seed the database:
+
+```bash
+npm run db:seed
+```
+
+6. Start the API:
 
 ```bash
 npm run dev
@@ -63,17 +68,16 @@ If `docker compose` is not found, fix your PATH or reinstall Docker Desktop.
 npm install
 ```
 
-2. Start PostgreSQL via Docker:
+2. Copy the environment template:
+
+```bash
+cp .env.example .env
+```
+
+3. Start PostgreSQL via Docker:
 
 ```bash
 docker compose up -d
-```
-
-3. Create a `.env` file in the project root with:
-
-```env
-DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
-PORT=3000
 ```
 
 4. Run database migrations:
@@ -82,10 +86,16 @@ PORT=3000
 npx prisma migrate dev
 ```
 
-5. Optional: seed sample data:
+5. Seed sample data:
 
 ```bash
 npm run db:seed
+```
+
+6. Optional: run the full database setup in one command:
+
+```bash
+npm run db:setup
 ```
 
 ## Run The API
@@ -133,3 +143,5 @@ After installing dependencies, hooks are installed automatically via the `prepar
 
 - Prisma is already initialized in this repository, so you do not need to run `prisma init`.
 - This repository already contains migrations, so you normally run `migrate dev` instead of creating a new `init` migration.
+- `npm run db:seed` is safe to rerun because the seed uses Prisma `upsert` operations.
+- If you want to verify the seeded data manually, run `docker exec academy-postgres psql -U academy_user -d job_roles_db -c 'select count(*) from "JobRole";'`.
