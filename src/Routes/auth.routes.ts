@@ -7,16 +7,26 @@ import AppAuthService from "../Services/auth/appAuth.service";
 import ArgonPasswordService from "../Services/auth/password/argonPassword.service";
 import JoseTokenService from "../Services/auth/token/joseToken.service";
 
-const prisma = getPrismaClient();
-const userRepository = new PrismaUserRepository(prisma);
-const passwordService = new ArgonPasswordService();
-const tokenService = new JoseTokenService();
-const authService = new AppAuthService(
-	userRepository,
-	passwordService,
-	tokenService,
-);
-const controller = new AuthController(authService);
+let controller: AuthController | null = null;
+
+const getController = (): AuthController => {
+	if (controller) {
+		return controller;
+	}
+
+	const prisma = getPrismaClient();
+	const userRepository = new PrismaUserRepository(prisma);
+	const passwordService = new ArgonPasswordService();
+	const tokenService = new JoseTokenService();
+	const authService = new AppAuthService(
+		userRepository,
+		passwordService,
+		tokenService,
+	);
+	controller = new AuthController(authService);
+
+	return controller;
+};
 
 const loginSchema = z.object({
 	email: z.string().email(),
@@ -37,7 +47,9 @@ authRouter.post(
 		request.body = parsed.data;
 		next();
 	},
-	controller.login,
+	(request, response) => getController().login(request, response),
 );
 
-authRouter.post("/logout", controller.logout);
+authRouter.post("/logout", (request, response) =>
+	getController().logout(request, response),
+);

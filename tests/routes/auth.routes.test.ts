@@ -59,9 +59,9 @@ describe("authRouter", () => {
 		expect(mockedPost).toHaveBeenCalledWith(
 			"/login",
 			expect.any(Function),
-			mockedController.login,
+			expect.any(Function),
 		);
-		expect(mockedPost).toHaveBeenCalledWith("/logout", mockedController.logout);
+		expect(mockedPost).toHaveBeenCalledWith("/logout", expect.any(Function));
 	});
 
 	it("returns 400 when login payload is invalid", async () => {
