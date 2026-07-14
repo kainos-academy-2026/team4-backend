@@ -22,7 +22,6 @@ docker compose up -d
 DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
 PORT=3000
 JWT_ACCESS_SECRET="replace_with_128_hex_chars"
-JWT_REFRESH_SECRET="replace_with_128_hex_chars"
 ENABLE_DEV_TEST_USER="false"
 TEST_USER_EMAIL="test@example.com"
 TEST_USER_PASSWORD="Password123!"
@@ -82,7 +81,6 @@ docker compose up -d
 DATABASE_URL="postgresql://academy_user:academy_password@localhost:5432/job_roles_db?schema=public"
 PORT=3000
 JWT_ACCESS_SECRET="replace_with_128_hex_chars"
-JWT_REFRESH_SECRET="replace_with_128_hex_chars"
 ENABLE_DEV_TEST_USER="false"
 TEST_USER_EMAIL="test@example.com"
 TEST_USER_PASSWORD="Password123!"
