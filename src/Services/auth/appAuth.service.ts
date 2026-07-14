@@ -1,5 +1,5 @@
-import type { LoginRequestDto } from "../../Dto/loginRequest.dto";
-import type { LoginResponseDto } from "../../Dto/loginResponse.dto";
+import type { LoginRequestDto } from "../../dto/loginRequest.dto";
+import type { LoginResponseDto } from "../../dto/loginResponse.dto";
 import type UserRepository from "../../repositories/user.repo";
 import type AuthService from "./auth.service";
 import InvalidCredentialsError from "./errors/invalidCredentials.error";

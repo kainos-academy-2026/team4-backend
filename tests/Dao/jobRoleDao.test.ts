@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PrismaJobRoleDao } from "../../src/Dao/jobRoleDao";
+import { PrismaJobRoleDao } from "../../src/dao/jobRoleDao";
 
 const findManyMock = vi.hoisted(() => vi.fn());
 const findUniqueMock = vi.hoisted(() => vi.fn());

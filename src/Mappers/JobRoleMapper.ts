@@ -1,6 +1,6 @@
-import type { JobRoleDetailedResponse } from "../Models/JobRoleDetailedResponse";
-import type { JobRole } from "../Models/jobRole";
-import type { JobRoleResponse } from "../Models/jobRoleResponse";
+import type { JobRoleDetailedResponse } from "../models/JobRoleDetailedResponse";
+import type { JobRole } from "../models/jobRole";
+import type { JobRoleResponse } from "../models/jobRoleResponse";
 
 export class JobRoleMapper {
 	public toResponse(jobRole: JobRole): JobRoleResponse {

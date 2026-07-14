@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { PrismaJobRoleDao } from "../../src/Dao/jobRoleDao";
-import { JobRoleMapper } from "../../src/Mappers/JobRoleMapper";
-import type { JobRole } from "../../src/Models/jobRole";
-import { JobRoleService } from "../../src/Services/jobRoleService";
+import { PrismaJobRoleDao } from "../../src/dao/jobRoleDao";
+import { JobRoleMapper } from "../../src/mappers/JobRoleMapper";
+import type { JobRole } from "../../src/models/jobRole";
+import { JobRoleService } from "../../src/services/jobRoleService";
 
 describe("job role service", () => {
 	it("calls default DAO and mapper correctly", async () => {

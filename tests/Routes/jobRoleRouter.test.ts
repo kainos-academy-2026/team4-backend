@@ -11,7 +11,7 @@ vi.mock("express", () => ({
 	Router: vi.fn(() => mockedRouter),
 }));
 
-vi.mock("../../src/Controller/jobRoleController", () => ({
+vi.mock("../../src/controller/jobRoleController", () => ({
 	JobRoleController: vi.fn(function MockedJobRoleController() {
 		return {
 			getJobRoles: mockedControllerGetJobRoles,
@@ -29,7 +29,7 @@ describe("job role router", () => {
 	});
 
 	it("registers GET /job-roles and delegates to controller", async () => {
-		await import("../../src/Routes/jobRoleRouter");
+		await import("../../src/routes/jobRoleRouter");
 
 		const jobRolesRouteCall = mockedRouterGet.mock.calls.find(
 			(call) => call[0] === "/job-roles",
@@ -57,7 +57,7 @@ describe("job role router", () => {
 	});
 
 	it("registers GET /job-roles/:id and delegates to controller", async () => {
-		await import("../../src/Routes/jobRoleRouter");
+		await import("../../src/routes/jobRoleRouter");
 
 		const jobRoleByIdRouteCall = mockedRouterGet.mock.calls.find(
 			(call) => call[0] === "/job-roles/:id",

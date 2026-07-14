@@ -37,11 +37,11 @@ vi.mock("helmet", () => ({
 	default: mockedHelmet,
 }));
 
-vi.mock("../src/Routes/jobRoleRouter", () => ({
+vi.mock("../src/routes/jobRoleRouter", () => ({
 	default: mockedJobRoleRouter,
 }));
 
-vi.mock("../src/Routes/auth.routes", () => ({
+vi.mock("../src/routes/auth.routes", () => ({
 	authRouter: mockedAuthRouter,
 }));
 

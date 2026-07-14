@@ -1,6 +1,6 @@
 import "dotenv/config";
 import app from "./app";
-import jobRoleRouter from "./Routes/jobRoleRouter";
+import jobRoleRouter from "./routes/jobRoleRouter";
 
 const envPort = process.env.PORT;
 const parsedPort = envPort !== undefined ? Number(envPort) : NaN;

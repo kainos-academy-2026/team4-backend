@@ -1,4 +1,4 @@
-import type { JobRole } from "../Models/jobRole";
+import type { JobRole } from "../models/jobRole";
 import { getPrismaClient } from "../prismaClient";
 
 export interface JobRoleDao {

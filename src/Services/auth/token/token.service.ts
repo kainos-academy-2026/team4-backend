@@ -1,4 +1,4 @@
-import type User from "../../../Models/user.model";
+import type User from "../../../models/user.model";
 
 export default interface TokenService {
 	create(user: User): Promise<string>;

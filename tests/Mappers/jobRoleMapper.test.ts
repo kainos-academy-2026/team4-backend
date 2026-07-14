@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { JobRoleMapper } from "../../src/Mappers/JobRoleMapper";
-import type { JobRole } from "../../src/Models/jobRole";
+import { JobRoleMapper } from "../../src/mappers/JobRoleMapper";
+import type { JobRole } from "../../src/models/jobRole";
 
 describe("job role mapper", () => {
 	it("maps a single job role to response format", () => {

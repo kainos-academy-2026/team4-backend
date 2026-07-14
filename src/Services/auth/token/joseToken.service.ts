@@ -1,7 +1,7 @@
 // Creates and signs a JWT containing the user ID, email, and role
 
 import { ACCESS_TOKEN_TTL } from "../../../constants";
-import type User from "../../../Models/user.model";
+import type User from "../../../models/user.model";
 import type TokenService from "./token.service";
 
 export default class JoseTokenService implements TokenService {

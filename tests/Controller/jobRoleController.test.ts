@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { JobRoleController } from "../../src/Controller/jobRoleController";
-import type { JobRoleService } from "../../src/Services/jobRoleService";
+import { JobRoleController } from "../../src/controller/jobRoleController";
+import type { JobRoleService } from "../../src/services/jobRoleService";
 
 describe("job role controller", () => {
 	it("returns status 200 with service payload", async () => {

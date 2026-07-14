@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import type { JobRoleService } from "../Services/jobRoleService";
+import type { JobRoleService } from "../services/jobRoleService";
 
 export class JobRoleController {
 	public constructor(private readonly jobRoleService: JobRoleService) {}
