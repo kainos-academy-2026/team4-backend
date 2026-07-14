@@ -49,11 +49,18 @@ describe("AppAuthService", () => {
 	it("throws Invalid credentials when user is not found", async () => {
 		// Tell the mock: pretend no user exists with this email
 		vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null);
+		vi.mocked(mockPasswordService.verify).mockResolvedValue(false);
 
 		// expect(...).rejects.toThrow() asserts that the promise throws
 		await expect(
 			authService.login({ email: "notfound@example.com", password: "any" }),
 		).rejects.toThrow("Invalid credentials");
+
+		expect(mockPasswordService.verify).toHaveBeenCalledTimes(1);
+		expect(mockPasswordService.verify).toHaveBeenCalledWith(
+			"any",
+			expect.any(String),
+		);
 	});
 
 	// --- Test 2: email exists but wrong password ---
