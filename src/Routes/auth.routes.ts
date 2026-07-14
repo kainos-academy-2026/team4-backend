@@ -49,7 +49,3 @@ authRouter.post(
 	},
 	(request, response) => getController().login(request, response),
 );
-
-authRouter.post("/logout", (request, response) =>
-	getController().logout(request, response),
-);

@@ -6,7 +6,6 @@ import InvalidCredentialsError from "../../../src/Services/auth/errors/invalidCr
 
 const mockAuthService: AuthService = {
 	login: vi.fn(),
-	logout: vi.fn(),
 };
 
 describe("AuthController", () => {
@@ -14,14 +13,12 @@ describe("AuthController", () => {
 	let response: Response;
 	let statusMock: ReturnType<typeof vi.fn>;
 	let jsonMock: ReturnType<typeof vi.fn>;
-	let sendMock: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		controller = new AuthController(mockAuthService);
 		jsonMock = vi.fn();
-		sendMock = vi.fn();
-		statusMock = vi.fn(() => ({ json: jsonMock, send: sendMock }));
+		statusMock = vi.fn(() => ({ json: jsonMock }));
 		response = { status: statusMock } as unknown as Response;
 	});
 
@@ -63,24 +60,6 @@ describe("AuthController", () => {
 		} as Request;
 
 		await controller.login(request, response);
-
-		expect(statusMock).toHaveBeenCalledWith(500);
-		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });
-	});
-
-	it("returns 204 on successful logout", async () => {
-		vi.mocked(mockAuthService.logout).mockResolvedValue(undefined);
-
-		await controller.logout({} as Request, response);
-
-		expect(statusMock).toHaveBeenCalledWith(204);
-		expect(sendMock).toHaveBeenCalled();
-	});
-
-	it("returns 500 on logout error", async () => {
-		vi.mocked(mockAuthService.logout).mockRejectedValue(new Error("boom"));
-
-		await controller.logout({} as Request, response);
 
 		expect(statusMock).toHaveBeenCalledWith(500);
 		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });
