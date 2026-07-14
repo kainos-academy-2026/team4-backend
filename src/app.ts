@@ -1,6 +1,6 @@
 import express from "express";
 import helmet from "helmet";
-import { authRouter } from "./routes/auth.routes";
+import { authRouter } from "./routes/authRoutes";
 
 const app = express();
 app.disable("x-powered-by");

@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { AuthController } from "../controller/auth.controller";
+import { AuthController } from "../controller/authController";
 import { validateLoginRequest } from "../middleware/login-request.middleware";
 import { getPrismaClient } from "../prismaClient";
-import PrismaUserRepository from "../repositories/prisma.user.repo";
-import AppAuthService from "../services/auth/appAuth.service";
-import ArgonPasswordService from "../services/auth/password/argonPassword.service";
-import JoseTokenService from "../services/auth/token/joseToken.service";
+import PrismaUserRepository from "../repositories/prismaUserRepo";
+import AppAuthService from "../services/auth/appAuthService";
+import ArgonPasswordService from "../services/auth/password/argonPasswordService";
+import JoseTokenService from "../services/auth/token/joseTokenService";
 
 const prisma = getPrismaClient();
 const userRepository = new PrismaUserRepository(prisma);

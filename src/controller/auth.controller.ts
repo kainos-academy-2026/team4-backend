@@ -13,7 +13,7 @@ export class AuthController {
 		const dto = request.body as LoginRequestDto;
 
 		try {
-			const result = await this.authService.login(dto); // TODO: set refresh cookie: HttpOnly + Secure + SameSite=Strict
+			const result = await this.authService.login(dto);
 			response.status(200).json(result);
 		} catch (error) {
 			if (error instanceof InvalidCredentialsError) {
