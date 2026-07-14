@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthController } from "../../../src/Controller/auth.controller";
-import type AuthService from "../../../src/Services/auth/auth.service";
-import InvalidCredentialsError from "../../../src/Services/auth/errors/invalidCredentials.error";
+import { AuthController } from "../../../src/controller/auth.controller";
+import type AuthService from "../../../src/services/auth/auth.service";
+import InvalidCredentialsError from "../../../src/services/auth/errors/invalidCredentials.error";
 
 const mockAuthService: AuthService = {
 	login: vi.fn(),
