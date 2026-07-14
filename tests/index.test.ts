@@ -11,6 +11,7 @@ const mockedJson = vi.fn(
 const mockedHelmet = vi.fn(
 	() => (_req: unknown, _res: unknown, next: () => void) => next(),
 );
+const mockedAuthRouter = { __type: "auth-router" };
 const mockedJobRoleRouter = { __type: "router" };
 const mockedExpressRouter = {
 	post: mockedPost,
@@ -40,6 +41,10 @@ vi.mock("../src/Routes/jobRoleRouter", () => ({
 	default: mockedJobRoleRouter,
 }));
 
+vi.mock("../src/Routes/auth.routes", () => ({
+	authRouter: mockedAuthRouter,
+}));
+
 describe("index route wiring", () => {
 	beforeEach(() => {
 		mockedDisable.mockClear();
@@ -66,6 +71,7 @@ describe("index route wiring", () => {
 
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
 		expect(mockedUse).toHaveBeenCalledWith(expect.any(Function));
+		expect(mockedUse).toHaveBeenCalledWith("/auth", mockedAuthRouter);
 		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 
 		const healthCall = mockedGet.mock.calls.find(
