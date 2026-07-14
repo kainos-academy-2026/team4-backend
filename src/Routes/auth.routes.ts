@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../Controller/auth.controller";
-import { LoginRequestSchema } from "../Dto/loginRequest.dto";
+import { validateLoginRequest } from "../middleware/login-request.middleware";
 import { getPrismaClient } from "../prismaClient";
 import PrismaUserRepository from "../repositories/prisma.user.repo";
 import AppAuthService from "../Services/auth/appAuth.service";
@@ -20,17 +20,6 @@ const controller = new AuthController(authService);
 
 export const authRouter: Router = Router();
 
-authRouter.post(
-	"/login",
-	(request, response, next) => {
-		const parsed = LoginRequestSchema.safeParse(request.body);
-		if (!parsed.success) {
-			response.status(400).json({ message: "Invalid login payload" });
-			return;
-		}
-
-		request.body = parsed.data;
-		next();
-	},
-	(request, response) => controller.login(request, response),
+authRouter.post("/login", validateLoginRequest, (request, response) =>
+	controller.login(request, response),
 );
