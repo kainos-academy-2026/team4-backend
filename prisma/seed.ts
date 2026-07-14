@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 const getEnv = (name: string, fallback: string): string => {
 	const value = process.env[name];
-	if (!value || !value.trim()) {
+	if (!value?.trim()) {
 		return fallback;
 	}
 
