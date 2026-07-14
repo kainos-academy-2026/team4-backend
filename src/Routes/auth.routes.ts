@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { z } from "zod";
 import { AuthController } from "../Controller/auth.controller";
+import { LoginRequestSchema } from "../Dto/loginRequest.dto";
 import { getPrismaClient } from "../prismaClient";
 import PrismaUserRepository from "../repositories/prisma.user.repo";
 import AppAuthService from "../Services/auth/appAuth.service";
@@ -28,17 +28,12 @@ const getController = (): AuthController => {
 	return controller;
 };
 
-const loginSchema = z.object({
-	email: z.string().email(),
-	password: z.string().min(1),
-});
-
 export const authRouter: Router = Router();
 
 authRouter.post(
 	"/login",
 	(request, response, next) => {
-		const parsed = loginSchema.safeParse(request.body);
+		const parsed = LoginRequestSchema.safeParse(request.body);
 		if (!parsed.success) {
 			response.status(400).json({ message: "Invalid login payload" });
 			return;
