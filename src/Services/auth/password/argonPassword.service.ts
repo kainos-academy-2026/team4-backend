@@ -4,11 +4,6 @@ import type PasswordService from "./password.service";
 
 export default class ArgonPasswordService implements PasswordService {
 	async verify(password: string, hash: string): Promise<boolean> {
-		try {
-			return await argon2.verify(hash, password);
-		} catch (error) {
-			console.error("Error verifying password:", error);
-			return false;
-		}
+		return await argon2.verify(hash, password);
 	}
 }
