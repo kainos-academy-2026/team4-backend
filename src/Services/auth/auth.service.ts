@@ -3,5 +3,4 @@ import type { LoginResponseDto } from "../../Dto/loginResponse.dto";
 
 export default interface AuthService {
 	login(request: LoginRequestDto): Promise<LoginResponseDto>;
-	logout(): Promise<void>;
 }
