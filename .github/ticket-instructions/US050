@@ -1,0 +1,148 @@
+User story
+As an applicant,
+I want to apply for a job role,
+so that I can register my interest in joining Kainos.
+
+Implementation guidance
+1. On the job role detail page, show an Apply button only when all of the following are true:
+	- the current user is an applicant
+	- role status is "open"
+	- open positions is greater than 0
+2. The Apply button should navigate to a dedicated application page for that role.
+3. The application page must provide a CV upload input and a submit action.
+4. On successful submit:
+	- create/update the application record
+	- set application status to "in progress"
+	- show a clear confirmation message to the applicant
+
+Backend handoff requirements
+1. Provide an endpoint to create an application for a role:
+	- `POST /job-roles/:id/applications`
+	- content type: `multipart/form-data`
+	- required file field: `cvFile`
+2. On success, return:
+	- `201 Created`
+	- application identifier
+	- status set to `in_progress`
+3. Applicant identity must come from authenticated context token, not from request body.
+4. Enforce one application per applicant per role (use the unique constraint on `[jobRoleId, applicantId]`).
+5. Define duplicate behavior explicitly:
+	- or update existing in-progress application
+6. Validate CV upload:
+	- allowed types: `pdf`, `doc`, `docx`
+	- return clear validation errors for unsupported file type
+7. Upload CV to S3 and persist metadata only in database (`cvS3Key`, `cvFileName`, `cvMimeType`, `cvSizeBytes`).
+
+Error handling requirements
+1. Return `404` when job role id does not exist.
+2. Return `400` for invalid job role id format.
+3. Return `409` for duplicate application conflicts (if not using update semantics).
+4. Return `502` or mapped server error when S3 upload fails.
+
+Frontend integration note
+1. Current frontend submit behavior is demo-only.
+2. Replace demo session-based submit persistence with the backend endpoint when available.
+
+Suggested Prisma format
+```prisma
+model JobApplication {
+	id            Int      @id @default(autoincrement())
+	jobRoleId     Int
+	applicantId   String   // use your existing user identifier type
+	status        String   @default("in_progress") // map to domain values in service/mapper layer
+	cvS3Key       String
+	cvFileName    String
+	cvMimeType    String
+	cvSizeBytes   Int
+	createdAt     DateTime @default(now())
+	updatedAt     DateTime @updatedAt
+
+	jobRole       JobRole  @relation(fields: [jobRoleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+	@@unique([jobRoleId, applicantId])
+	@@index([applicantId])
+	@@index([status])
+}
+```
+
+Status value guidance (application layer)
+1. Do not use database enums for application status.
+2. Use string values in the database (for example: "in_progress", "submitted", "withdrawn").
+3. Define allowed status constants/types in the service or mapper layer and validate before persisting.
+
+Add relation to existing `JobRole` model
+```prisma
+model JobRole {
+	id           Int      @id @default(autoincrement())
+	roleName     String
+	location     String
+	capabilityId Int
+	bandId       Int
+	closingDate           DateTime
+	status                String
+	description           String
+	responsibilities      String
+	sharepointUrl         String?
+	numberOfOpenPositions Int?
+
+	capability Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+	band       Band       @relation(fields: [bandId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+	applications JobApplication[]
+
+	@@index([capabilityId])
+	@@index([bandId])
+}
+```
+
+Acceptance criteria
+1. Given an applicant is viewing a job role with status "open" and open positions > 0, an Apply button is visible on the job information page.
+2. Given any role that is closed or has 0 open positions, the Apply button is not visible.
+3. Selecting Apply routes the applicant to a new application page where they can upload a CV.
+4. Submitting the form sets the application status to "in progress".
+
+Non-functional requirements
+1. Store uploaded CV files in an AWS S3 bucket.
+
+## Frontend Integration Instructions
+
+The backend endpoint for submitting a job application is live. Replace any demo or session-based submission logic with a real API call to this endpoint.
+
+### Endpoint
+
+```
+POST /job-roles/:id/applications
+Content-Type: multipart/form-data
+Authorization: Bearer <access_token>
+```
+
+- `:id` is the numeric job role ID from the current page URL.
+- The JWT access token must be sent in the `Authorization` header — it is obtained from the login response (`accessToken`).
+- The CV file must be sent as a form field named `cvFile`. Allowed types: `pdf`, `doc`, `docx`.
+
+### Success response — `201 Created`
+
+```json
+{
+  "id": 1,
+  "jobRoleId": 42,
+  "applicantId": "clxxx...",
+  "status": "in_progress"
+}
+```
+
+On success, show a clear confirmation message to the applicant.
+
+### Error responses to handle
+
+| Status | Meaning |
+|--------|---------|
+| `400` | Invalid job role ID, missing CV file, or unsupported file type — display the `message` field to the user |
+| `401` | Missing or invalid token — redirect to login |
+| `404` | Job role not found |
+| `502` | S3 upload failed — show a generic retry message |
+
+### Integration notes
+
+- The Apply button should only be rendered when: the current user's role is `"user"` (applicant), the job role `status` is `"open"`, and `numberOfOpenPositions` is greater than `0`.
+- Do not include the applicant ID in the request body — it is extracted from the token server-side.
+- If the applicant has already applied for the role, the backend will update their existing in-progress application rather than creating a duplicate.

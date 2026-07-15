@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockedRouterGet = vi.fn();
+const mockedRouterPost = vi.fn();
 const mockedControllerGetJobRoles = vi.fn();
 const mockedControllerJobRoleDetailedResponse = vi.fn();
 const mockedAuthorize = vi.fn(() =>
 	vi.fn((_request, _response, next) => next()),
 );
+const mockedCreateApplication = vi.fn();
 const mockedRouter = {
 	get: mockedRouterGet,
+	post: mockedRouterPost,
 };
 
 vi.mock("express", () => ({
@@ -27,9 +30,33 @@ vi.mock("../../src/middleware/authMiddleware", () => ({
 	authorize: mockedAuthorize,
 }));
 
+vi.mock("../../src/controller/jobApplicationController", () => ({
+	JobApplicationController: vi.fn(function MockedJobApplicationController() {
+		return {
+			createApplication: mockedCreateApplication,
+		};
+	}),
+}));
+
+vi.mock("../../src/services/jobApplicationService", () => ({
+	JobApplicationService: vi.fn(function MockedJobApplicationService() {
+		return {};
+	}),
+}));
+
+vi.mock("../../src/middleware/authMiddleware", () => ({
+	requireAuth: vi.fn(),
+}));
+
+vi.mock("../../src/middleware/cvUploadMiddleware", () => ({
+	cvUpload: vi.fn(),
+	handleCvUploadErrors: vi.fn(),
+}));
+
 describe("job role router", () => {
 	beforeEach(() => {
 		mockedRouterGet.mockClear();
+		mockedRouterPost.mockClear();
 		mockedControllerGetJobRoles.mockClear();
 		mockedControllerJobRoleDetailedResponse.mockClear();
 		mockedAuthorize.mockClear();
@@ -96,5 +123,14 @@ describe("job role router", () => {
 		await import("../../src/routes/jobRoleRouter");
 
 		expect(mockedAuthorize).toHaveBeenCalledTimes(2);
+	});
+
+	it("registers POST /job-roles/:id/applications", async () => {
+		await import("../../src/routes/jobRoleRouter");
+
+		const postRouteCall = mockedRouterPost.mock.calls.find(
+			(call) => call[0] === "/job-roles/:id/applications",
+		);
+		expect(postRouteCall).toBeDefined();
 	});
 });

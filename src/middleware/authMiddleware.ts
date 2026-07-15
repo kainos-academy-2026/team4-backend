@@ -69,3 +69,55 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 		}
 	};
 };
+import type { NextFunction, Request, Response } from "express";
+
+export interface AuthenticatedUser {
+	userId: string;
+	email: string;
+	role: string;
+}
+
+declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace
+	namespace Express {
+		interface Request {
+			user?: AuthenticatedUser;
+		}
+	}
+}
+
+export const requireAuth = async (
+	request: Request,
+	response: Response,
+	next: NextFunction,
+): Promise<void> => {
+	const authHeader = request.headers.authorization;
+
+	if (!authHeader?.startsWith("Bearer ")) {
+		response.status(401).json({ message: "Unauthorised" });
+		return;
+	}
+
+	const token = authHeader.slice(7);
+	const accessSecret = process.env.JWT_ACCESS_SECRET;
+
+	if (!accessSecret) {
+		response.status(500).json({ message: "Internal server error" });
+		return;
+	}
+
+	try {
+		const { jwtVerify } = await import("jose");
+		const { payload } = await jwtVerify(token, Buffer.from(accessSecret));
+
+		request.user = {
+			userId: payload.userId as string,
+			email: payload.email as string,
+			role: payload.role as string,
+		};
+
+		next();
+	} catch {
+		response.status(401).json({ message: "Unauthorised" });
+	}
+};
