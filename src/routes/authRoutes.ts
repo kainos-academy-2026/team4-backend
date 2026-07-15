@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controller/authController";
-import { validateLoginRequest } from "../middleware/login-request.middleware";
+import { validateLoginRequest } from "../middleware/loginRequestMiddleware";
 import { getPrismaClient } from "../prismaClient";
 import PrismaUserRepository from "../repositories/prismaUserRepo";
 import AppAuthService from "../services/auth/appAuthService";
