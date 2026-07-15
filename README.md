@@ -92,6 +92,11 @@ npx prisma migrate dev
 npm run db:seed
 ```
 
+To seed local auth users, set both `NODE_ENV="development"` and
+`ENABLE_DEV_TEST_USER="true"` in your local `.env`.
+Then `npm run db:seed` will upsert one `user` and one `admin` account with Argon2
+password hashes using the `TEST_*` variables.
+
 6. Optional: run the full database setup in one command:
 
 ```bash

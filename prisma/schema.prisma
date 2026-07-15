@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String   @id @default(cuid()) // Identify user row
+  email        String   @unique
+  role         String   @default("user") // user = applicant, admin = recruiter
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Capability {
   id             Int       @id @default(autoincrement())
   capabilityName String
@@ -25,11 +34,11 @@ model JobRole {
   location     String
   capabilityId Int
   bandId       Int
-  closingDate           DateTime
-  status                String
-  description           String
-  responsibilities      String
-  sharepointUrl         String?
+  closingDate  DateTime
+  status       String
+  description  String
+  responsibilities String
+  sharepointUrl String?
   numberOfOpenPositions Int?
 
   capability Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict, onUpdate: Cascade)

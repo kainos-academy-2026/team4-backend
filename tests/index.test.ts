@@ -4,8 +4,18 @@ const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
-const mockedHelmet = vi.fn(() => () => undefined);
+const mockedPost = vi.fn();
+const mockedJson = vi.fn(
+	() => (_req: unknown, _res: unknown, next: () => void) => next(),
+);
+const mockedHelmet = vi.fn(
+	() => (_req: unknown, _res: unknown, next: () => void) => next(),
+);
+const mockedAuthRouter = { __type: "auth-router" };
 const mockedJobRoleRouter = { __type: "router" };
+const mockedExpressRouter = {
+	post: mockedPost,
+};
 const originalPort = process.env.PORT;
 
 vi.mock("express", () => {
@@ -15,9 +25,11 @@ vi.mock("express", () => {
 		use: mockedUse,
 		listen: mockedListen,
 	}));
+	Object.assign(expressFactory, { json: mockedJson });
 
 	return {
 		default: expressFactory,
+		Router: vi.fn(() => mockedExpressRouter),
 	};
 });
 
@@ -25,8 +37,12 @@ vi.mock("helmet", () => ({
 	default: mockedHelmet,
 }));
 
-vi.mock("../src/Routes/jobRoleRouter", () => ({
+vi.mock("../src/routes/jobRoleRouter", () => ({
 	default: mockedJobRoleRouter,
+}));
+
+vi.mock("../src/routes/authRoutes", () => ({
+	authRouter: mockedAuthRouter,
 }));
 
 describe("index route wiring", () => {
@@ -34,6 +50,8 @@ describe("index route wiring", () => {
 		mockedDisable.mockClear();
 		mockedGet.mockClear();
 		mockedUse.mockClear();
+		mockedPost.mockClear();
+		mockedJson.mockClear();
 		mockedListen.mockClear();
 		vi.resetModules();
 		delete process.env.PORT;
@@ -53,6 +71,7 @@ describe("index route wiring", () => {
 
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
 		expect(mockedUse).toHaveBeenCalledWith(expect.any(Function));
+		expect(mockedUse).toHaveBeenCalledWith("/auth", mockedAuthRouter);
 		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 
 		const healthCall = mockedGet.mock.calls.find(
