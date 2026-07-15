@@ -12,4 +12,8 @@ export type JobRoleDetailedResponse = {
 	responsibilities: string;
 	sharepointUrl?: string;
 	numberOfOpenPositions?: number;
+	myApplication?: {
+		status?: string;
+		cvFileName?: string;
+	} | null;
 };

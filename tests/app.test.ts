@@ -29,6 +29,10 @@ vi.mock("../src/routes/authRoutes", () => ({
 	authRouter: mockedAuthRouter,
 }));
 
+vi.mock("../src/routes/jobRoleRouter", () => ({
+	default: { __type: "jobRoleRouter" },
+}));
+
 describe("app wiring", () => {
 	beforeEach(() => {
 		mockedGet.mockClear();

@@ -1,6 +1,22 @@
 import type { NextFunction, Request, Response } from "express";
 import { verifyAuthToken } from "../Auth/authToken";
 import { isRole, Role } from "../Auth/role";
+import { AuthPayloadSchema } from "../dto/authPayloadDto";
+
+export interface AuthenticatedUser {
+	userId: string;
+	email: string;
+	role: string;
+}
+
+declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace
+	namespace Express {
+		interface Request {
+			user?: AuthenticatedUser;
+		}
+	}
+}
 
 const ALL_ROLES = [Role.Admin, Role.User] as const;
 
@@ -26,7 +42,7 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 		try {
 			const token = getBearerToken(request.headers.authorization);
 			if (!token) {
-				response.status(401).json({ message: "Unauthorized" });
+				next();
 				return;
 			}
 
@@ -68,4 +84,84 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 			next(error);
 		}
 	};
+};
+
+export const requireAuth = async (
+	request: Request,
+	response: Response,
+	next: NextFunction,
+): Promise<void> => {
+	const authHeader = request.headers.authorization;
+
+	if (!authHeader?.startsWith("Bearer ")) {
+		response.status(401).json({ message: "Unauthorised" });
+		return;
+	}
+
+	const token = authHeader.slice(7);
+	const accessSecret = process.env.JWT_ACCESS_SECRET;
+
+	if (!accessSecret) {
+		response.status(500).json({ message: "Internal server error" });
+		return;
+	}
+
+	try {
+		const { jwtVerify } = await import("jose");
+		const { payload } = await jwtVerify(token, Buffer.from(accessSecret));
+
+		const parsed = AuthPayloadSchema.safeParse(payload);
+		if (!parsed.success) {
+			response.status(401).json({ message: "Unauthorised" });
+			return;
+		}
+
+		request.user = {
+			userId: parsed.data.sub,
+			email: parsed.data.email,
+			role: parsed.data.role,
+		};
+		next();
+	} catch {
+		response.status(401).json({ message: "Unauthorised" });
+	}
+};
+
+export const optionalAuth = async (
+	request: Request,
+	_response: Response,
+	next: NextFunction,
+): Promise<void> => {
+	const authHeader = request.headers.authorization;
+
+	if (!authHeader?.startsWith("Bearer ")) {
+		next();
+		return;
+	}
+
+	const token = authHeader.slice(7);
+	const accessSecret = process.env.JWT_ACCESS_SECRET;
+
+	if (!accessSecret) {
+		next();
+		return;
+	}
+
+	try {
+		const { jwtVerify } = await import("jose");
+		const { payload } = await jwtVerify(token, Buffer.from(accessSecret));
+
+		const parsed = AuthPayloadSchema.safeParse(payload);
+		if (parsed.success) {
+			request.user = {
+				userId: parsed.data.sub,
+				email: parsed.data.email,
+				role: parsed.data.role,
+			};
+		}
+	} catch {
+		// Silently ignore auth errors in optional middleware
+	}
+
+	next();
 };
