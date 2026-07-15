@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 import { describe, expect, it } from "vitest";
-import ArgonPasswordService from "../../../src/services/auth/password/argonPasswordService";
+import ArgonPasswordService from "../../../../src/services/auth/password/argonPasswordService";
 
 describe("ArgonPasswordService", () => {
 	it("returns true when password matches hash", async () => {
