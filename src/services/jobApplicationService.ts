@@ -4,6 +4,7 @@ import type { JobApplicationDao } from "../dao/jobApplicationDao";
 import { PrismaJobApplicationDao } from "../dao/jobApplicationDao";
 import type { JobRoleDao } from "../dao/jobRoleDao";
 import { PrismaJobRoleDao } from "../dao/jobRoleDao";
+import { JobApplicationMapper } from "../mappers/jobApplicationMapper";
 import type { JobApplicationResponse } from "../models/jobApplicationResponse";
 import { AwsS3Service } from "./s3/awsS3Service";
 import type { S3Service } from "./s3/s3Service";
@@ -28,6 +29,7 @@ export class JobApplicationService {
 		private readonly jobApplicationDao: JobApplicationDao = new PrismaJobApplicationDao(),
 		private readonly jobRoleDao: JobRoleDao = new PrismaJobRoleDao(),
 		private readonly s3Service: S3Service = new AwsS3Service(),
+		private readonly jobApplicationMapper: JobApplicationMapper = new JobApplicationMapper(),
 	) {}
 
 	public async createApplication(params: {
@@ -68,13 +70,7 @@ export class JobApplicationService {
 			cvSizeBytes: params.cvSizeBytes,
 		});
 
-		return {
-			id: application.id,
-			jobRoleId: application.jobRoleId,
-			applicantId: application.applicantId,
-			status: application.status,
-			cvFileName: application.cvFileName,
-		};
+		return this.jobApplicationMapper.toResponse(application);
 	}
 
 	public async getApplicationForRole(
@@ -88,12 +84,6 @@ export class JobApplicationService {
 
 		if (!application) return null;
 
-		return {
-			id: application.id,
-			jobRoleId: application.jobRoleId,
-			applicantId: application.applicantId,
-			status: application.status,
-			cvFileName: application.cvFileName,
-		};
+		return this.jobApplicationMapper.toResponse(application);
 	}
 }

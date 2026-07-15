@@ -1,3 +1,4 @@
+import { JobRoleMapper } from "../mappers/jobRoleMapper";
 import type { JobRole } from "../models/jobRole";
 import { getPrismaClient } from "../prismaClient";
 
@@ -7,6 +8,10 @@ export interface JobRoleDao {
 }
 
 export class PrismaJobRoleDao implements JobRoleDao {
+	public constructor(
+		private readonly jobRoleMapper: JobRoleMapper = new JobRoleMapper(),
+	) {}
+
 	public async getJobRoles(): Promise<readonly JobRole[]> {
 		const prisma = getPrismaClient();
 		const jobRoles = await prisma.jobRole.findMany({
@@ -19,24 +24,7 @@ export class PrismaJobRoleDao implements JobRoleDao {
 			},
 		});
 
-		return jobRoles.map((jobRole) => ({
-			id: jobRole.id,
-			roleName: jobRole.roleName,
-			location: jobRole.location,
-			capabilityId: jobRole.capabilityId,
-			capabilityName: jobRole.capability.capabilityName,
-			bandId: jobRole.bandId,
-			bandName: jobRole.band.bandName,
-			closingDate:
-				jobRole.closingDate instanceof Date
-					? jobRole.closingDate
-					: new Date(jobRole.closingDate),
-			status: jobRole.status,
-			description: jobRole.description,
-			responsibilities: jobRole.responsibilities,
-			sharepointUrl: jobRole.sharepointUrl ?? undefined,
-			numberOfOpenPositions: jobRole.numberOfOpenPositions ?? undefined,
-		}));
+		return this.jobRoleMapper.toModels(jobRoles);
 	}
 
 	public async JobRoleDetailedResponse(
@@ -57,23 +45,6 @@ export class PrismaJobRoleDao implements JobRoleDao {
 			return null;
 		}
 
-		return {
-			id: jobRole.id,
-			roleName: jobRole.roleName,
-			location: jobRole.location,
-			capabilityId: jobRole.capabilityId,
-			capabilityName: jobRole.capability.capabilityName,
-			bandId: jobRole.bandId,
-			bandName: jobRole.band.bandName,
-			closingDate:
-				jobRole.closingDate instanceof Date
-					? jobRole.closingDate
-					: new Date(jobRole.closingDate),
-			status: jobRole.status,
-			description: jobRole.description,
-			responsibilities: jobRole.responsibilities,
-			sharepointUrl: jobRole.sharepointUrl ?? undefined,
-			numberOfOpenPositions: jobRole.numberOfOpenPositions ?? undefined,
-		};
+		return this.jobRoleMapper.toModel(jobRole);
 	}
 }

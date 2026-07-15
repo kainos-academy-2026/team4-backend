@@ -16,22 +16,7 @@ export class JobApplicationController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const rawJobRoleId = request.params.id;
-
-			if (
-				typeof rawJobRoleId !== "string" ||
-				!/^[1-9]\d*$/.test(rawJobRoleId)
-			) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
-
-			const jobRoleId = Number(rawJobRoleId);
-
-			if (!Number.isSafeInteger(jobRoleId)) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
+			const jobRoleId = Number(request.params.id);
 
 			const applicantId = request.user?.userId;
 			if (!applicantId) {
@@ -78,22 +63,7 @@ export class JobApplicationController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const rawJobRoleId = request.params.id;
-
-			if (
-				typeof rawJobRoleId !== "string" ||
-				!/^[1-9]\d*$/.test(rawJobRoleId)
-			) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
-
-			const jobRoleId = Number(rawJobRoleId);
-
-			if (!Number.isSafeInteger(jobRoleId)) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
+			const jobRoleId = Number(request.params.id);
 
 			const applicantId = request.user?.userId;
 			if (!applicantId) {

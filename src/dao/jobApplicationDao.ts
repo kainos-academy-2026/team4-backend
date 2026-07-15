@@ -1,3 +1,4 @@
+import { JobApplicationMapper } from "../mappers/jobApplicationMapper";
 import type { JobApplication } from "../models/jobApplication";
 import { getPrismaClient } from "../prismaClient";
 
@@ -18,6 +19,10 @@ export interface JobApplicationDao {
 }
 
 export class PrismaJobApplicationDao implements JobApplicationDao {
+	public constructor(
+		private readonly jobApplicationMapper: JobApplicationMapper = new JobApplicationMapper(),
+	) {}
+
 	public async upsert(params: {
 		jobRoleId: number;
 		applicantId: string;
@@ -54,18 +59,7 @@ export class PrismaJobApplicationDao implements JobApplicationDao {
 			},
 		});
 
-		return {
-			id: record.id,
-			jobRoleId: record.jobRoleId,
-			applicantId: record.applicantId,
-			status: record.status,
-			cvS3Key: record.cvS3Key,
-			cvFileName: record.cvFileName,
-			cvMimeType: record.cvMimeType,
-			cvSizeBytes: record.cvSizeBytes,
-			createdAt: record.createdAt,
-			updatedAt: record.updatedAt,
-		};
+		return this.jobApplicationMapper.toModel(record);
 	}
 
 	public async findByJobRoleAndApplicant(
@@ -82,17 +76,6 @@ export class PrismaJobApplicationDao implements JobApplicationDao {
 
 		if (!record) return null;
 
-		return {
-			id: record.id,
-			jobRoleId: record.jobRoleId,
-			applicantId: record.applicantId,
-			status: record.status,
-			cvS3Key: record.cvS3Key,
-			cvFileName: record.cvFileName,
-			cvMimeType: record.cvMimeType,
-			cvSizeBytes: record.cvSizeBytes,
-			createdAt: record.createdAt,
-			updatedAt: record.updatedAt,
-		};
+		return this.jobApplicationMapper.toModel(record);
 	}
 }

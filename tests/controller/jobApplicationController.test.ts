@@ -64,59 +64,6 @@ describe("JobApplicationController", () => {
 			expect(next).not.toHaveBeenCalled();
 		});
 
-		it("returns 400 for non-integer job role id", async () => {
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.createApplication(
-				makeRequest({ params: { id: "abc" } }) as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-			expect(mockService.createApplication).not.toHaveBeenCalled();
-		});
-
-		it("returns 400 for decimal job role id", async () => {
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.createApplication(
-				makeRequest({ params: { id: "1.5" } }) as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-		});
-
-		it("returns 400 for zero job role id", async () => {
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.createApplication(
-				makeRequest({ params: { id: "0" } }) as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-		});
-
-		it("returns 400 for negative job role id", async () => {
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.createApplication(
-				makeRequest({ params: { id: "-1" } }) as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-		});
-
 		it("returns 401 when no authenticated user on request", async () => {
 			const response = makeResponse();
 			const next = vi.fn();
@@ -246,20 +193,6 @@ describe("JobApplicationController", () => {
 			expect(response.status(404).json).toHaveBeenCalledWith({
 				message: "No application found",
 			});
-		});
-
-		it("returns 400 for invalid job role id", async () => {
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.getApplicationForRole(
-				makeRequest({ params: { id: "abc" } }) as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-			expect(mockService.getApplicationForRole).not.toHaveBeenCalled();
 		});
 
 		it("returns 401 when no authenticated user on request", async () => {

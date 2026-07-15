@@ -8,6 +8,7 @@ import {
 	cvUpload,
 	handleCvUploadErrors,
 } from "../middleware/cvUploadMiddleware";
+import { validateJobRoleIdParam } from "../middleware/jobRoleIdParamMiddleware";
 import { JobApplicationService } from "../services/jobApplicationService";
 import { JobRoleService } from "../services/jobRoleService";
 
@@ -32,11 +33,13 @@ router.get(
 );
 router.get(
 	"/job-roles/:id/applications/me",
+	validateJobRoleIdParam,
 	requireAuth,
 	jobApplicationController.getApplicationForRole,
 );
 router.post(
 	"/job-roles/:id/applications",
+	validateJobRoleIdParam,
 	requireAuth,
 	cvUpload,
 	handleCvUploadErrors,

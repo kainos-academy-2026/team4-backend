@@ -8,6 +8,8 @@ const mockedAuthorize = vi.fn(() =>
 	vi.fn((_request, _response, next) => next()),
 );
 const mockedCreateApplication = vi.fn();
+const mockedGetApplicationForRole = vi.fn();
+const mockedValidateJobRoleIdParam = vi.fn();
 const mockedRouter = {
 	get: mockedRouterGet,
 	post: mockedRouterPost,
@@ -34,6 +36,7 @@ vi.mock("../../src/controller/jobApplicationController", () => ({
 	JobApplicationController: vi.fn(function MockedJobApplicationController() {
 		return {
 			createApplication: mockedCreateApplication,
+			getApplicationForRole: mockedGetApplicationForRole,
 		};
 	}),
 }));
@@ -51,6 +54,10 @@ vi.mock("../../src/middleware/authMiddleware", () => ({
 vi.mock("../../src/middleware/cvUploadMiddleware", () => ({
 	cvUpload: vi.fn(),
 	handleCvUploadErrors: vi.fn(),
+}));
+
+vi.mock("../../src/middleware/jobRoleIdParamMiddleware", () => ({
+	validateJobRoleIdParam: mockedValidateJobRoleIdParam,
 }));
 
 describe("job role router", () => {
@@ -99,7 +106,9 @@ describe("job role router", () => {
 		);
 		expect(jobRoleByIdRouteCall).toBeDefined();
 
+		const jobRoleByIdValidationMiddleware = jobRoleByIdRouteCall?.[1];
 		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[2];
+		expect(jobRoleByIdValidationMiddleware).toBe(mockedValidateJobRoleIdParam);
 		expect(typeof jobRoleByIdHandler).toBe("function");
 
 		if (!jobRoleByIdHandler) {
