@@ -3,8 +3,3 @@ dist/
 coverage/
 .env
 /src/generated/prisma
-.env.local
-.env.development
-.env.test
-.env.production
-!.env.example
