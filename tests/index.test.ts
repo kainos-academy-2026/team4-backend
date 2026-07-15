@@ -1,39 +1,17 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockedGet = vi.fn();
 const mockedListen = vi.fn();
-const mockedDisable = vi.fn();
-const mockedUse = vi.fn();
-const mockedHelmet = vi.fn(() => () => undefined);
-const mockedJobRoleRouter = { __type: "router" };
+const mockedApp = { listen: mockedListen };
 const originalPort = process.env.PORT;
 
-vi.mock("express", () => {
-	const expressFactory = vi.fn(() => ({
-		disable: mockedDisable,
-		get: mockedGet,
-		use: mockedUse,
-		listen: mockedListen,
-	}));
-
+vi.mock("../src/app", () => {
 	return {
-		default: expressFactory,
+		default: mockedApp,
 	};
 });
 
-vi.mock("helmet", () => ({
-	default: mockedHelmet,
-}));
-
-vi.mock("../src/Routes/jobRoleRouter", () => ({
-	default: mockedJobRoleRouter,
-}));
-
 describe("index route wiring", () => {
 	beforeEach(() => {
-		mockedDisable.mockClear();
-		mockedGet.mockClear();
-		mockedUse.mockClear();
 		mockedListen.mockClear();
 		vi.resetModules();
 		delete process.env.PORT;
@@ -46,45 +24,6 @@ describe("index route wiring", () => {
 		}
 
 		process.env.PORT = originalPort;
-	});
-
-	it("registers GET /health and returns status UP with parseable time", async () => {
-		await import("../src/index.ts");
-
-		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
-		expect(mockedUse).toHaveBeenCalledWith(expect.any(Function));
-		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
-
-		const healthCall = mockedGet.mock.calls.find(
-			(call) => call[0] === "/health",
-		);
-		expect(healthCall).toBeDefined();
-
-		const registeredHandler = healthCall?.[1];
-		expect(typeof registeredHandler).toBe("function");
-
-		if (!registeredHandler) {
-			throw new Error("Expected /health handler function");
-		}
-
-		let payload: { status?: string; time?: string } | undefined;
-		const response = {
-			json: (body: { status?: string; time?: string }) => {
-				payload = body;
-			},
-		};
-
-		registeredHandler({}, response);
-
-		expect(payload?.status).toBe("UP");
-		expect(payload?.time).toBeTypeOf("string");
-		expect(Number.isNaN(Date.parse(payload?.time ?? ""))).toBe(false);
-	});
-
-	it("mounts the job role router", async () => {
-		await import("../src/index.ts");
-
-		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
 	});
 
 	it("starts server on default port 3000 when PORT is not set", async () => {
