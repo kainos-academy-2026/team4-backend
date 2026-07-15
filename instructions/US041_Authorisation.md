@@ -5,7 +5,7 @@ Acceptance Criteria
 - Recruitment admin can access all endpoints
 
 Create a middelware to do the following:
-1. Get token from Authorisation heaader (req.headers)
+1. Get token from Authorisation header (req.headers)
 2. Check token is valid (check signature and expiry) using library called jose
 3. Get role from token payload
 4. Check if role is a allowed role 

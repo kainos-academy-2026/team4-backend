@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockedRouterGet = vi.fn();
 const mockedControllerGetJobRoles = vi.fn();
 const mockedControllerJobRoleDetailedResponse = vi.fn();
+const mockedAuthorize = vi.fn(() =>
+	vi.fn((_request, _response, next) => next()),
+);
 const mockedRouter = {
 	get: mockedRouterGet,
 };
@@ -20,11 +23,16 @@ vi.mock("../../src/controller/jobRoleController", () => ({
 	}),
 }));
 
+vi.mock("../../src/Middleware/authMiddleware", () => ({
+	authorize: mockedAuthorize,
+}));
+
 describe("job role router", () => {
 	beforeEach(() => {
 		mockedRouterGet.mockClear();
 		mockedControllerGetJobRoles.mockClear();
 		mockedControllerJobRoleDetailedResponse.mockClear();
+		mockedAuthorize.mockClear();
 		vi.resetModules();
 	});
 
@@ -36,7 +44,7 @@ describe("job role router", () => {
 		);
 		expect(jobRolesRouteCall).toBeDefined();
 
-		const jobRolesHandler = jobRolesRouteCall?.[1];
+		const jobRolesHandler = jobRolesRouteCall?.[2];
 		expect(typeof jobRolesHandler).toBe("function");
 
 		if (!jobRolesHandler) {
@@ -64,7 +72,7 @@ describe("job role router", () => {
 		);
 		expect(jobRoleByIdRouteCall).toBeDefined();
 
-		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[1];
+		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[2];
 		expect(typeof jobRoleByIdHandler).toBe("function");
 
 		if (!jobRoleByIdHandler) {
@@ -82,5 +90,11 @@ describe("job role router", () => {
 			response,
 			next,
 		);
+	});
+
+	it("registers role-based authorization middleware for both routes", async () => {
+		await import("../../src/Routes/jobRoleRouter");
+
+		expect(mockedAuthorize).toHaveBeenCalledTimes(2);
 	});
 });

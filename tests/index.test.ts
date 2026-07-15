@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockedGet = vi.fn();
 const mockedListen = vi.fn();
 const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
