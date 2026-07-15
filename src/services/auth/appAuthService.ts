@@ -14,7 +14,6 @@ export default class AppAuthService implements AuthService {
 	) {}
 
 	async login(request: LoginRequestDto): Promise<LoginResponseDto> {
-		// Always perform a verify call to reduce timing differences for missing vs existing users.
 		const user = await this.userRepository.findByEmail(request.email);
 		const isPasswordValid = await this.passwordService.verify(
 			request.password,
