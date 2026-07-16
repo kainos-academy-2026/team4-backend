@@ -1,31 +1,23 @@
 import type { NextFunction, Request, Response } from "express";
-import { z } from "zod";
+import type { z } from "zod";
+import { registerRequestSchema } from "../dto/registerRequest.dto";
 
-const passwordSchema = z
-	.string()
-	.min(8)
-	.regex(/[a-z]/)
-	.regex(/[A-Z]/)
-	.regex(/[^A-Za-z0-9]/);
+// Generic validation middleware factory - accepts any Zod schema and error message
+export const createValidationMiddleware =
+	(schema: z.ZodSchema, errorMessage: string) =>
+	(request: Request, response: Response, next: NextFunction): void => {
+		const parsed = schema.safeParse(request.body);
+		if (!parsed.success) {
+			response.status(400).json({ message: errorMessage });
+			return;
+		}
 
-const registerUserSchema = z
-	.object({
-		email: z.string().email(),
-		password: passwordSchema,
-	})
-	.strict();
+		request.body = parsed.data;
+		next();
+	};
 
-export const validateRegisterUser = (
-	request: Request,
-	response: Response,
-	next: NextFunction,
-): void => {
-	const parsed = registerUserSchema.safeParse(request.body);
-	if (!parsed.success) {
-		response.status(400).json({ message: "Invalid registration payload" });
-		return;
-	}
-
-	request.body = parsed.data;
-	next();
-};
+// Registration-specific validation middleware using generic factory
+export const validateRegisterUser = createValidationMiddleware(
+	registerRequestSchema,
+	"Invalid registration payload",
+);
