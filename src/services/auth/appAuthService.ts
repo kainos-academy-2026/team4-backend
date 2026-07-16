@@ -1,8 +1,11 @@
 import type { LoginRequestDto } from "../../dto/loginRequestDto";
 import type { LoginResponseDto } from "../../dto/loginResponseDto";
+import type { RegisterRequestDto } from "../../dto/registerRequest.dto";
+import type { RegisterResponseDto } from "../../dto/registerResponse.dto";
 import type UserRepository from "../../repositories/userRepo";
 import type AuthService from "./authService";
 import InvalidCredentialsError from "./errors/invalidCredentialsError";
+import UserAlreadyExistsError from "./errors/userAlreadyExists.error";
 import type PasswordService from "./password/passwordService";
 import type TokenService from "./token/tokenService";
 
@@ -30,5 +33,24 @@ export default class AppAuthService implements AuthService {
 		const accessToken = await this.tokenService.create(user);
 
 		return { accessToken };
+	}
+
+	async register(request: RegisterRequestDto): Promise<RegisterResponseDto> {
+		const existingUser = await this.userRepository.findByEmail(request.email);
+		if (existingUser) {
+			throw new UserAlreadyExistsError();
+		}
+
+		const passwordHash = await this.passwordService.hash(request.password);
+		const createdUser = await this.userRepository.create(
+			request.email,
+			passwordHash,
+		);
+
+		return {
+			id: createdUser.id,
+			email: createdUser.email,
+			role: createdUser.role,
+		};
 	}
 }

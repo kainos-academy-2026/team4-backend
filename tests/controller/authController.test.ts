@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthController } from "../../src/controller/authController";
 import type AuthService from "../../src/services/auth/authService";
 import InvalidCredentialsError from "../../src/services/auth/errors/invalidCredentialsError";
+import UserAlreadyExistsError from "../../src/services/auth/errors/userAlreadyExists.error";
 
 const mockAuthService: AuthService = {
 	login: vi.fn(),
+	register: vi.fn(),
 };
 
 describe("AuthController", () => {
@@ -13,12 +15,14 @@ describe("AuthController", () => {
 	let response: Response;
 	let statusMock: ReturnType<typeof vi.fn>;
 	let jsonMock: ReturnType<typeof vi.fn>;
+	let sendMock: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		controller = new AuthController(mockAuthService);
 		jsonMock = vi.fn();
-		statusMock = vi.fn(() => ({ json: jsonMock }));
+		sendMock = vi.fn();
+		statusMock = vi.fn(() => ({ json: jsonMock, send: sendMock }));
 		response = { status: statusMock } as unknown as Response;
 	});
 
@@ -60,6 +64,55 @@ describe("AuthController", () => {
 		} as Request;
 
 		await controller.login(request, response);
+
+		expect(statusMock).toHaveBeenCalledWith(500);
+		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });
+	});
+
+	it("returns 201 with safe user data on successful registration", async () => {
+		vi.mocked(mockAuthService.register).mockResolvedValue({
+			id: "user-123",
+			email: "test@example.com",
+			role: "user",
+		});
+
+		const request = {
+			body: { email: "test@example.com", password: "Password1!" },
+		} as Request;
+
+		await controller.register(request, response);
+
+		expect(statusMock).toHaveBeenCalledWith(201);
+		expect(jsonMock).toHaveBeenCalledWith({
+			id: "user-123",
+			email: "test@example.com",
+			role: "user",
+		});
+	});
+
+	it("returns 409 when the registration email already exists", async () => {
+		vi.mocked(mockAuthService.register).mockRejectedValue(
+			new UserAlreadyExistsError(),
+		);
+
+		const request = {
+			body: { email: "test@example.com", password: "Password1!" },
+		} as Request;
+
+		await controller.register(request, response);
+
+		expect(statusMock).toHaveBeenCalledWith(409);
+		expect(jsonMock).toHaveBeenCalledWith({ message: "User already exists" });
+	});
+
+	it("returns 500 on unexpected registration error", async () => {
+		vi.mocked(mockAuthService.register).mockRejectedValue(new Error("boom"));
+
+		const request = {
+			body: { email: "test@example.com", password: "Password1!" },
+		} as Request;
+
+		await controller.register(request, response);
 
 		expect(statusMock).toHaveBeenCalledWith(500);
 		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });

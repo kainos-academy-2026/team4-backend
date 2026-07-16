@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "../controller/authController";
 import { validateLoginRequest } from "../middleware/loginRequestMiddleware";
+import { validateRegisterUser } from "../middleware/register-user.middleware";
 import { getPrismaClient } from "../prismaClient";
 import PrismaUserRepository from "../repositories/prismaUserRepo";
 import AppAuthService from "../services/auth/appAuthService";
@@ -20,6 +21,5 @@ const controller = new AuthController(authService);
 
 export const authRouter: Router = Router();
 
-authRouter.post("/login", validateLoginRequest, (request, response) =>
-	controller.login(request, response),
-);
+authRouter.post("/register", validateRegisterUser, controller.register);
+authRouter.post("/login", validateLoginRequest, controller.login);
