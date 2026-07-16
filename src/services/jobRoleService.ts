@@ -1,13 +1,13 @@
 import type { JobRoleDao } from "../dao/jobRoleDao";
 import { PrismaJobRoleDao } from "../dao/jobRoleDao";
-import { JobRoleMapper } from "../mappers/jobRoleMapper";
+import { type IJobRoleMapper, JobRoleMapper } from "../mappers/jobRoleMapper";
 import type { JobRoleDetailedResponse } from "../models/jobRoleDetailedResponse";
 import type { JobRoleResponse } from "../models/jobRoleResponse";
 
 export class JobRoleService {
 	constructor(
 		private readonly jobRoleDao: JobRoleDao = new PrismaJobRoleDao(),
-		private readonly jobRoleMapper: JobRoleMapper = new JobRoleMapper(),
+		private readonly jobRoleMapper: IJobRoleMapper = new JobRoleMapper(),
 	) {}
 
 	public async getJobRoles(): Promise<JobRoleResponse[]> {

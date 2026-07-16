@@ -176,4 +176,20 @@ describe("requireAuth middleware", () => {
 		expect(response.status).toHaveBeenCalledWith(500);
 		expect(next).not.toHaveBeenCalled();
 	});
+
+	it("returns 401 when JWT payload has invalid shape", async () => {
+		vi.mocked(jwtVerify).mockResolvedValue({
+			payload: { sub: "missing-required-fields" },
+			protectedHeader: { alg: "HS256" },
+		});
+
+		const request = makeRequest("Bearer some-token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await requireAuth(request as never, response as never, next);
+
+		expect(response.status).toHaveBeenCalledWith(401);
+		expect(next).not.toHaveBeenCalled();
+	});
 });

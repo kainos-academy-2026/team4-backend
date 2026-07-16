@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobApplicationController } from "../../src/controller/jobApplicationController";
+import { JobNotFoundError } from "../../src/services/errors/jobNotFoundError";
+import { S3UploadError } from "../../src/services/errors/s3UploadError";
 import type { JobApplicationService } from "../../src/services/jobApplicationService";
-import {
-	JobNotFoundError,
-	S3UploadError,
-} from "../../src/services/jobApplicationService";
 
 const makeRequest = (overrides: Record<string, unknown> = {}) => ({
 	params: { id: "1" },

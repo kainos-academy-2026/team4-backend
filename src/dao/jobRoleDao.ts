@@ -1,4 +1,4 @@
-import { JobRoleMapper } from "../mappers/jobRoleMapper";
+import { type IJobRoleMapper, JobRoleMapper } from "../mappers/jobRoleMapper";
 import type { JobRole } from "../models/jobRole";
 import { getPrismaClient } from "../prismaClient";
 
@@ -9,7 +9,7 @@ export interface JobRoleDao {
 
 export class PrismaJobRoleDao implements JobRoleDao {
 	public constructor(
-		private readonly jobRoleMapper: JobRoleMapper = new JobRoleMapper(),
+		private readonly jobRoleMapper: IJobRoleMapper = new JobRoleMapper(),
 	) {}
 
 	public async getJobRoles(): Promise<readonly JobRole[]> {

@@ -1,7 +1,7 @@
 import type { JobApplication } from "../models/jobApplication";
 import type { JobApplicationResponse } from "../models/jobApplicationResponse";
 
-type JobApplicationRecord = {
+export type JobApplicationRecord = {
 	id: number;
 	jobRoleId: number;
 	applicantId: string;
@@ -14,7 +14,12 @@ type JobApplicationRecord = {
 	updatedAt: Date;
 };
 
-export class JobApplicationMapper {
+export interface IJobApplicationMapper {
+	toModel(record: JobApplicationRecord): JobApplication;
+	toResponse(application: JobApplication): JobApplicationResponse;
+}
+
+export class JobApplicationMapper implements IJobApplicationMapper {
 	public toModel(record: JobApplicationRecord): JobApplication {
 		return {
 			id: record.id,

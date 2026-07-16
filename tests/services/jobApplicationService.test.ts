@@ -3,11 +3,9 @@ import type { JobApplicationDao } from "../../src/dao/jobApplicationDao";
 import type { JobRoleDao } from "../../src/dao/jobRoleDao";
 import type { JobApplication } from "../../src/models/jobApplication";
 import type { JobRole } from "../../src/models/jobRole";
-import {
-	JobApplicationService,
-	JobNotFoundError,
-	S3UploadError,
-} from "../../src/services/jobApplicationService";
+import { JobNotFoundError } from "../../src/services/errors/jobNotFoundError";
+import { S3UploadError } from "../../src/services/errors/s3UploadError";
+import { JobApplicationService } from "../../src/services/jobApplicationService";
 import type { S3Service } from "../../src/services/s3/s3Service";
 
 const mockJobRole: JobRole = {

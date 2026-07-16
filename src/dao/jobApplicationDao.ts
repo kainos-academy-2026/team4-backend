@@ -1,4 +1,7 @@
-import { JobApplicationMapper } from "../mappers/jobApplicationMapper";
+import {
+	type IJobApplicationMapper,
+	JobApplicationMapper,
+} from "../mappers/jobApplicationMapper";
 import type { JobApplication } from "../models/jobApplication";
 import { getPrismaClient } from "../prismaClient";
 
@@ -20,7 +23,7 @@ export interface JobApplicationDao {
 
 export class PrismaJobApplicationDao implements JobApplicationDao {
 	public constructor(
-		private readonly jobApplicationMapper: JobApplicationMapper = new JobApplicationMapper(),
+		private readonly jobApplicationMapper: IJobApplicationMapper = new JobApplicationMapper(),
 	) {}
 
 	public async upsert(params: {

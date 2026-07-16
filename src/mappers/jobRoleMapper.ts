@@ -2,7 +2,7 @@ import type { JobRole } from "../models/jobRole";
 import type { JobRoleDetailedResponse } from "../models/jobRoleDetailedResponse";
 import type { JobRoleResponse } from "../models/jobRoleResponse";
 
-type JobRoleRecord = {
+export type JobRoleRecord = {
 	id: number;
 	roleName: string;
 	location: string;
@@ -22,7 +22,15 @@ type JobRoleRecord = {
 	numberOfOpenPositions?: number | null;
 };
 
-export class JobRoleMapper {
+export interface IJobRoleMapper {
+	toModel(record: JobRoleRecord): JobRole;
+	toModels(records: readonly JobRoleRecord[]): JobRole[];
+	toResponse(jobRole: JobRole): JobRoleResponse;
+	JobRoleDetailedResponse(jobRole: JobRole): JobRoleDetailedResponse;
+	toResponses(jobRoles: readonly JobRole[]): JobRoleResponse[];
+}
+
+export class JobRoleMapper implements IJobRoleMapper {
 	public toModel(record: JobRoleRecord): JobRole {
 		return {
 			id: record.id,
