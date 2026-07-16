@@ -54,7 +54,6 @@ export class AuthController {
 	public login = async (
 		request: Request,
 		response: Response,
-		next: NextFunction,
 	): Promise<void> => {
 		try {
 			const { email, password } = request.body as {
@@ -85,8 +84,6 @@ export class AuthController {
 				response.status(401).json({ message: error.message });
 				return;
 			}
-
-			next(error);
 		}
 	};
 }

@@ -1,6 +1,39 @@
 import { PrismaClient } from "@prisma/client";
+import "dotenv/config";
 
 const prisma = new PrismaClient();
+
+const isTrue = (value: string | undefined): boolean => {
+	if (!value) {
+		return false;
+	}
+
+	return value.trim().toLowerCase() === "true";
+};
+
+const getEnv = (name: string, fallback: string): string => {
+	const value = process.env[name]?.trim();
+	return value && value.length > 0 ? value : fallback;
+};
+
+const seedAuthUser = async (input: {
+	email: string;
+	password: string;
+	role: "admin" | "user";
+}): Promise<void> => {
+	await prisma.user.upsert({
+		where: { email: input.email.trim().toLowerCase() },
+		update: {
+			password: input.password,
+			role: input.role,
+		},
+		create: {
+			email: input.email.trim().toLowerCase(),
+			password: input.password,
+			role: input.role,
+		},
+	});
+};
 
 async function main(): Promise<void> {
 	const engineering = await prisma.capability.upsert({
@@ -135,6 +168,37 @@ async function main(): Promise<void> {
 			numberOfOpenPositions: 3,
 		},
 	});
+	const enableDevTestUser = isTrue(process.env.ENABLE_DEV_TEST_USER);
+	const nodeEnv = process.env.NODE_ENV?.trim();
+
+	// Safety: seed known test logins only when NODE_ENV is explicitly development.
+	if (enableDevTestUser && nodeEnv !== "development") {
+		throw new Error(
+			"ENABLE_DEV_TEST_USER requires NODE_ENV=development (explicitly set)",
+		);
+	}
+
+	// In local dev, this creates/updates the two login accounts we need.
+	if (nodeEnv === "development" && enableDevTestUser) {
+		const applicantEmail = getEnv("TEST_USER_EMAIL", "test@example.com");
+		const applicantPassword = getEnv("TEST_USER_PASSWORD", "Password123!");
+		const adminEmail = getEnv("TEST_ADMIN_EMAIL", "admin@example.com");
+		const adminPassword = getEnv("TEST_ADMIN_PASSWORD", "AdminPassword123!");
+
+		await seedAuthUser({
+			email: applicantEmail,
+			password: applicantPassword,
+			role: "user",
+		});
+
+		await seedAuthUser({
+			email: adminEmail,
+			password: adminPassword,
+			role: "admin",
+		});
+
+		console.log(`Seeded auth users: ${applicantEmail}, ${adminEmail}`);
+	}
 }
 
 main()
