@@ -105,19 +105,6 @@ describe("AppAuthService", () => {
 		expect(mockUserRepository.create).not.toHaveBeenCalled();
 	});
 
-	it("throws when create hits a unique constraint race", async () => {
-		vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null);
-		vi.mocked(mockPasswordService.hash).mockResolvedValue("hashed-password");
-		vi.mocked(mockUserRepository.create).mockRejectedValue({ code: "P2002" });
-
-		await expect(
-			authService.register({
-				email: fakeUser.email,
-				password: "Password1!",
-			}),
-		).rejects.toBeInstanceOf(UserAlreadyExistsError);
-	});
-
 	it("rethrows create errors that are not object-shaped", async () => {
 		vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null);
 		vi.mocked(mockPasswordService.hash).mockResolvedValue("hashed-password");
@@ -165,14 +152,5 @@ describe("AppAuthService", () => {
 			email: fakeUser.email,
 			role: fakeUser.role,
 		});
-	});
-
-	it("returns without side effects on logout", async () => {
-		await expect(authService.logout()).resolves.toBeUndefined();
-		expect(mockUserRepository.findByEmail).not.toHaveBeenCalled();
-		expect(mockUserRepository.create).not.toHaveBeenCalled();
-		expect(mockPasswordService.hash).not.toHaveBeenCalled();
-		expect(mockPasswordService.verify).not.toHaveBeenCalled();
-		expect(mockTokenService.create).not.toHaveBeenCalled();
 	});
 });

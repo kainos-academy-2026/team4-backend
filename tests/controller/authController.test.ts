@@ -8,7 +8,6 @@ import UserAlreadyExistsError from "../../src/services/auth/errors/userAlreadyEx
 const mockAuthService: AuthService = {
 	login: vi.fn(),
 	register: vi.fn(),
-	logout: vi.fn(),
 };
 
 describe("AuthController", () => {
@@ -114,24 +113,6 @@ describe("AuthController", () => {
 		} as Request;
 
 		await controller.register(request, response);
-
-		expect(statusMock).toHaveBeenCalledWith(500);
-		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });
-	});
-
-	it("returns 204 on successful logout", async () => {
-		vi.mocked(mockAuthService.logout).mockResolvedValue(undefined);
-
-		await controller.logout({} as Request, response);
-
-		expect(statusMock).toHaveBeenCalledWith(204);
-		expect(sendMock).toHaveBeenCalled();
-	});
-
-	it("returns 500 on logout error", async () => {
-		vi.mocked(mockAuthService.logout).mockRejectedValue(new Error("boom"));
-
-		await controller.logout({} as Request, response);
 
 		expect(statusMock).toHaveBeenCalledWith(500);
 		expect(jsonMock).toHaveBeenCalledWith({ message: "Internal server error" });

@@ -6,7 +6,6 @@ const mockedRouter = { post: mockedPost };
 const mockedController = {
 	register: vi.fn(),
 	login: vi.fn(),
-	logout: vi.fn(),
 };
 
 vi.mock("express", () => ({
@@ -53,10 +52,10 @@ describe("authRouter", () => {
 		vi.clearAllMocks();
 	});
 
-	it("registers POST /register, POST /login and POST /logout routes", async () => {
+	it("registers POST /register and POST /login routes", async () => {
 		await import("../../src/routes/authRoutes");
 
-		expect(mockedPost).toHaveBeenCalledTimes(3);
+		expect(mockedPost).toHaveBeenCalledTimes(2);
 		expect(mockedPost).toHaveBeenCalledWith(
 			"/register",
 			expect.any(Function),
@@ -67,7 +66,6 @@ describe("authRouter", () => {
 			expect.any(Function),
 			expect.any(Function),
 		);
-		expect(mockedPost).toHaveBeenCalledWith("/logout", mockedController.logout);
 	});
 
 	it("returns 400 when login payload is invalid", async () => {

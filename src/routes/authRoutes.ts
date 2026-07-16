@@ -23,4 +23,3 @@ export const authRouter: Router = Router();
 
 authRouter.post("/register", validateRegisterUser, controller.register);
 authRouter.post("/login", validateLoginRequest, controller.login);
-authRouter.post("/logout", controller.logout);
