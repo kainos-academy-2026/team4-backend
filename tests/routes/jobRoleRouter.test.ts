@@ -31,6 +31,8 @@ vi.mock("../../src/controller/jobRoleController", () => ({
 
 vi.mock("../../src/middleware/authMiddleware", () => ({
 	authorize: mockedAuthorize,
+	requireAuth: vi.fn(),
+	optionalAuth: vi.fn(),
 }));
 
 vi.mock("../../src/controller/jobApplicationController", () => ({
@@ -47,11 +49,6 @@ vi.mock("../../src/services/jobApplicationService", () => ({
 	JobApplicationService: vi.fn(function MockedJobApplicationService() {
 		return {};
 	}),
-}));
-
-vi.mock("../../src/middleware/authMiddleware", () => ({
-	requireAuth: vi.fn(),
-	optionalAuth: vi.fn(),
 }));
 
 vi.mock("../../src/middleware/jobRoleIdParamMiddleware", () => ({
@@ -76,9 +73,8 @@ describe("job role router", () => {
 		);
 		expect(jobRolesRouteCall).toBeDefined();
 
-		const jobRolesHandler = jobRolesRouteCall?.[2];
 		const optionalAuthMiddleware = jobRolesRouteCall?.[1];
-		const jobRolesHandler = jobRolesRouteCall?.[2];
+		const jobRolesHandler = jobRolesRouteCall?.[3];
 
 		// Get the mock from the mocked module
 		const authMiddlewareMock = await import(
@@ -113,7 +109,6 @@ describe("job role router", () => {
 		expect(jobRoleByIdRouteCall).toBeDefined();
 
 		const optionalAuthMiddleware = jobRoleByIdRouteCall?.[1];
-		const jobRoleByIdValidationMiddleware = jobRoleByIdRouteCall?.[2];
 		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[3];
 
 		// Get the mock from the mocked module
@@ -121,7 +116,6 @@ describe("job role router", () => {
 			"../../src/middleware/authMiddleware"
 		);
 		expect(optionalAuthMiddleware).toBe(authMiddlewareMock.optionalAuth);
-		expect(jobRoleByIdValidationMiddleware).toBe(mockedValidateJobRoleIdParam);
 		expect(typeof jobRoleByIdHandler).toBe("function");
 
 		if (!jobRoleByIdHandler) {

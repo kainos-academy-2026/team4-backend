@@ -2,8 +2,11 @@ import { Router } from "express";
 import { Role } from "../Auth/role";
 import { JobApplicationController } from "../controller/jobApplicationController";
 import { JobRoleController } from "../controller/jobRoleController";
-import { authorize } from "../middleware/authMiddleware";
-import { optionalAuth, requireAuth } from "../middleware/authMiddleware";
+import {
+	authorize,
+	optionalAuth,
+	requireAuth,
+} from "../middleware/authMiddleware";
 import { validateJobRoleIdParam } from "../middleware/jobRoleIdParamMiddleware";
 import { JobApplicationService } from "../services/jobApplicationService";
 import { JobRoleService } from "../services/jobRoleService";
@@ -18,7 +21,8 @@ const jobApplicationController = new JobApplicationController(
 );
 
 router.get(
-	"/job-roles", optionalAuth,
+	"/job-roles",
+	optionalAuth,
 	authorize([Role.Admin, Role.User]),
 	jobRoleController.getJobRoles,
 );

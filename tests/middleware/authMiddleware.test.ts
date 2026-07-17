@@ -1,11 +1,20 @@
-import { describe, expect, it, vi } from "vitest";
+import { jwtVerify } from "jose";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Role } from "../../src/Auth/role";
-import { authorize } from "../../src/middleware/authMiddleware";
+import {
+	authorize,
+	optionalAuth,
+	requireAuth,
+} from "../../src/middleware/authMiddleware";
 
 const mockedVerifyAuthToken = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/Auth/authToken", () => ({
 	verifyAuthToken: mockedVerifyAuthToken,
+}));
+
+vi.mock("jose", () => ({
+	jwtVerify: vi.fn(),
 }));
 
 describe("auth middleware", () => {
@@ -77,14 +86,6 @@ describe("auth middleware", () => {
 		});
 	});
 });
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("jose", () => ({
-	jwtVerify: vi.fn(),
-}));
-
-import { jwtVerify } from "jose";
-import { optionalAuth, requireAuth } from "../../src/middleware/authMiddleware";
 
 const makeRequest = (authHeader?: string) => ({
 	headers: {
