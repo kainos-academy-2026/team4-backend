@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const AuthPayloadSchema = z.object({
-	userId: z.string(),
+	sub: z.string(),
 	email: z.string().email(),
 	role: z.string(),
 });

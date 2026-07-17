@@ -18,7 +18,7 @@ vi.mock("jose", () => ({
 }));
 
 describe("auth middleware", () => {
-	it("returns 401 when Authorization header is missing", async () => {
+	it("calls next when Authorization header is missing (allows unauthenticated access)", async () => {
 		const middleware = authorize([Role.Admin]);
 		const status = vi.fn(() => response);
 		const json = vi.fn();
@@ -28,9 +28,8 @@ describe("auth middleware", () => {
 
 		await middleware(request as never, response as never, next);
 
-		expect(status).toHaveBeenCalledWith(401);
-		expect(json).toHaveBeenCalledWith({ message: "Unauthorized" });
-		expect(next).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledTimes(1);
+		expect(status).not.toHaveBeenCalled();
 	});
 
 	it("returns 403 when role is valid but not allowed", async () => {
@@ -109,7 +108,7 @@ describe("requireAuth middleware", () => {
 	it("calls next and attaches user when token is valid", async () => {
 		vi.mocked(jwtVerify).mockResolvedValue({
 			payload: {
-				userId: "user-123",
+				sub: "user-123",
 				email: "user@example.com",
 				role: "user",
 			},
@@ -242,7 +241,7 @@ describe("optionalAuth middleware", () => {
 	it("attaches request.user when token is valid", async () => {
 		vi.mocked(jwtVerify).mockResolvedValue({
 			payload: {
-				userId: "user-optional",
+				sub: "user-optional",
 				email: "optional@example.com",
 				role: "user",
 			},

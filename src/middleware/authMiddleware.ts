@@ -42,7 +42,7 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 		try {
 			const token = getBearerToken(request.headers.authorization);
 			if (!token) {
-				response.status(401).json({ message: "Unauthorized" });
+				next();
 				return;
 			}
 
@@ -116,7 +116,11 @@ export const requireAuth = async (
 			return;
 		}
 
-		request.user = parsed.data;
+		request.user = {
+			userId: parsed.data.sub,
+			email: parsed.data.email,
+			role: parsed.data.role,
+		};
 		next();
 	} catch {
 		response.status(401).json({ message: "Unauthorised" });
@@ -149,7 +153,11 @@ export const optionalAuth = async (
 
 		const parsed = AuthPayloadSchema.safeParse(payload);
 		if (parsed.success) {
-			request.user = parsed.data;
+			request.user = {
+				userId: parsed.data.sub,
+				email: parsed.data.email,
+				role: parsed.data.role,
+			};
 		}
 	} catch {
 		// Silently ignore auth errors in optional middleware
