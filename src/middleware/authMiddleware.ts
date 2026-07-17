@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import { errors as joseErrors } from "jose";
 import { verifyAuthToken } from "../Auth/authToken";
 import { isRole, Role } from "../Auth/role";
 
@@ -37,8 +36,8 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 				return;
 			}
 
-			const userId = Number(payload.sub);
-			if (!Number.isSafeInteger(userId) || userId <= 0) {
+			const userId = payload.sub;
+			if (!userId) {
 				response.status(401).json({ message: "Unauthorized" });
 				return;
 			}
@@ -56,6 +55,7 @@ export const authorize = (allowedRoles: readonly Role[] = ALL_ROLES) => {
 
 			next();
 		} catch (error) {
+			const { errors: joseErrors } = await import("jose");
 			if (
 				error instanceof joseErrors.JWTExpired ||
 				error instanceof joseErrors.JWTInvalid ||

@@ -1,44 +1,24 @@
-import { type JWTPayload, jwtVerify, SignJWT } from "jose";
-import type { Role } from "./role";
-
-interface SignTokenInput {
-	userId: number;
-	email: string;
-	role: Role;
-}
-
-export interface AuthTokenPayload extends JWTPayload {
+export interface AuthTokenPayload {
+	sub?: string;
 	email?: string;
 	role?: string;
+	iat?: number;
+	exp?: number;
 }
 
 const getJwtSecret = (): Uint8Array => {
-	const jwtSecret = process.env.JWT_SECRET?.trim();
+	const jwtSecret = process.env.JWT_ACCESS_SECRET?.trim();
 	if (!jwtSecret) {
-		throw new Error("JWT_SECRET is required to sign and verify tokens");
+		throw new Error("JWT_ACCESS_SECRET is required to sign and verify tokens");
 	}
 
 	return new TextEncoder().encode(jwtSecret);
 };
 
-export const signAuthToken = async ({
-	userId,
-	email,
-	role,
-}: SignTokenInput): Promise<string> => {
-	const secret = getJwtSecret();
-
-	return new SignJWT({ email, role })
-		.setProtectedHeader({ alg: "HS256" })
-		.setSubject(String(userId))
-		.setIssuedAt()
-		.setExpirationTime("1h")
-		.sign(secret);
-};
-
 export const verifyAuthToken = async (
 	token: string,
 ): Promise<AuthTokenPayload> => {
+	const { jwtVerify } = await import("jose");
 	const secret = getJwtSecret();
 	const { payload } = await jwtVerify(token, secret);
 

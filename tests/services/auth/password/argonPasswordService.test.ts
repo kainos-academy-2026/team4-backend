@@ -1,5 +1,5 @@
 import argon2 from "argon2";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import ArgonPasswordService from "../../../../src/services/auth/password/argonPasswordService";
 
 describe("ArgonPasswordService", () => {
@@ -26,5 +26,28 @@ describe("ArgonPasswordService", () => {
 		await expect(service.verify("Password123!", undefined)).resolves.toBe(
 			false,
 		);
+	});
+
+	it("returns false and logs when the hash is malformed", async () => {
+		const service = new ArgonPasswordService();
+		const consoleErrorSpy = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+
+		await expect(
+			service.verify("Password123!", "not-a-valid-hash"),
+		).resolves.toBe(false);
+		expect(consoleErrorSpy).toHaveBeenCalled();
+
+		consoleErrorSpy.mockRestore();
+	});
+
+	it("hashes a password to a different string", async () => {
+		const service = new ArgonPasswordService();
+		const password = "Password1!";
+		const hash = await service.hash(password);
+
+		expect(hash).not.toBe(password);
+		await expect(service.verify(password, hash)).resolves.toBe(true);
 	});
 });

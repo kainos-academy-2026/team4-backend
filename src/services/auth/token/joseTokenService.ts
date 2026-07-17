@@ -22,12 +22,13 @@ export default class JoseTokenService implements TokenService {
 	async create(user: User): Promise<string> {
 		const { SignJWT } = await import("jose");
 
+		// userId is set as the standard JWT "sub" claim so verifyAuthToken can read payload.sub
 		return await new SignJWT({
-			userId: user.id,
 			email: user.email,
 			role: user.role,
 		})
 			.setProtectedHeader({ alg: "HS256" })
+			.setSubject(String(user.id))
 			.setIssuedAt()
 			.setExpirationTime(ACCESS_TOKEN_TTL)
 			.sign(this.secret);

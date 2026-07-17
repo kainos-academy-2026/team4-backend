@@ -23,7 +23,7 @@ vi.mock("../../src/controller/jobRoleController", () => ({
 	}),
 }));
 
-vi.mock("../../src/Middleware/authMiddleware", () => ({
+vi.mock("../../src/middleware/authMiddleware", () => ({
 	authorize: mockedAuthorize,
 }));
 
@@ -93,7 +93,7 @@ describe("job role router", () => {
 	});
 
 	it("registers role-based authorization middleware for both routes", async () => {
-		await import("../../src/Routes/jobRoleRouter");
+		await import("../../src/routes/jobRoleRouter");
 
 		expect(mockedAuthorize).toHaveBeenCalledTimes(2);
 	});

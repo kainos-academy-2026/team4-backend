@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockedGet = vi.fn();
+const mockedDisable = vi.fn();
 const mockedUse = vi.fn();
 const mockedJson = vi.fn(() => ({ __type: "jsonMiddleware" }));
 const mockedHelmet = vi.fn(() => ({ __type: "helmetMiddleware" }));
-const mockedAuthorize = vi.fn(() => ({ __type: "authMiddleware" }));
 const mockedAuthRouter = { __type: "authRouter" };
-const mockedJobRoleRouter = { __type: "jobRoleRouter" };
 
 vi.mock("express", () => {
 	const expressFactory = vi.fn(() => ({
 		get: mockedGet,
+		disable: mockedDisable,
 		use: mockedUse,
 	}));
 
@@ -25,39 +25,29 @@ vi.mock("helmet", () => ({
 	default: mockedHelmet,
 }));
 
-vi.mock("../src/Middleware/authMiddleware", () => ({
-	authorize: mockedAuthorize,
-}));
-
-vi.mock("../src/Routes/authRouter", () => ({
-	default: mockedAuthRouter,
-}));
-
-vi.mock("../src/Routes/jobRoleRouter", () => ({
-	default: mockedJobRoleRouter,
+vi.mock("../src/routes/authRoutes", () => ({
+	authRouter: mockedAuthRouter,
 }));
 
 describe("app wiring", () => {
 	beforeEach(() => {
 		mockedGet.mockClear();
+		mockedDisable.mockClear();
 		mockedUse.mockClear();
 		mockedJson.mockClear();
 		mockedHelmet.mockClear();
-		mockedAuthorize.mockClear();
 		vi.resetModules();
 	});
 
 	it("registers middleware and routers in expected order", async () => {
 		await import("../src/app");
 
+		expect(mockedDisable).toHaveBeenCalledWith("x-powered-by");
 		expect(mockedUse).toHaveBeenNthCalledWith(1, {
 			__type: "helmetMiddleware",
 		});
 		expect(mockedUse).toHaveBeenNthCalledWith(2, { __type: "jsonMiddleware" });
-		expect(mockedUse).toHaveBeenNthCalledWith(3, mockedAuthRouter);
-		expect(mockedUse).toHaveBeenNthCalledWith(4, { __type: "authMiddleware" });
-		expect(mockedUse).toHaveBeenNthCalledWith(5, mockedJobRoleRouter);
-		expect(mockedAuthorize).toHaveBeenCalledTimes(1);
+		expect(mockedUse).toHaveBeenNthCalledWith(3, "/auth", mockedAuthRouter);
 	});
 
 	it("registers GET /health and returns status UP with parseable time", async () => {

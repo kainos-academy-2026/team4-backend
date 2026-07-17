@@ -61,7 +61,7 @@ describe("auth middleware", () => {
 		const next = vi.fn();
 		const request: {
 			headers: { authorization: string };
-			authUser?: { id: number; email: string; role: Role };
+			authUser?: { id: string; email: string; role: Role };
 		} = {
 			headers: { authorization: "Bearer token" },
 		};
@@ -71,7 +71,7 @@ describe("auth middleware", () => {
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(status).not.toHaveBeenCalled();
 		expect(request.authUser).toEqual({
-			id: 7,
+			id: "7",
 			email: "admin@example.com",
 			role: Role.Admin,
 		});
