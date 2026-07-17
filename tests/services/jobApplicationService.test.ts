@@ -80,11 +80,15 @@ describe("JobApplicationService", () => {
 			const result = await service.generateUploadUrl({
 				jobRoleId: 1,
 				applicantId: "user-abc",
+				mimeType: "application/pdf",
 				fileName: "cv.pdf",
 			});
 
 			expect(mockJobRoleDao.JobRoleDetailedResponse).toHaveBeenCalledWith(1);
-			expect(mockS3Service.getPresignedPutUrl).toHaveBeenCalledOnce();
+			expect(mockS3Service.getPresignedPutUrl).toHaveBeenCalledWith({
+				key: expect.stringContaining("cvs/1/user-abc/"),
+				mimeType: "application/pdf",
+			});
 			expect(result.presignedUrl).toBe("https://s3.example.com/presigned");
 			expect(result.s3Key).toContain("cvs/1/user-abc/");
 			expect(result.s3Key).toContain("cv.pdf");
@@ -94,6 +98,7 @@ describe("JobApplicationService", () => {
 			const result = await service.generateUploadUrl({
 				jobRoleId: 1,
 				applicantId: "user-abc",
+				mimeType: "application/pdf",
 			});
 
 			expect(result.s3Key).toMatch(/^cvs\/1\/user-abc\/.+\.bin$/);
@@ -103,7 +108,11 @@ describe("JobApplicationService", () => {
 			vi.mocked(mockJobRoleDao.JobRoleDetailedResponse).mockResolvedValue(null);
 
 			await expect(
-				service.generateUploadUrl({ jobRoleId: 1, applicantId: "user-abc" }),
+				service.generateUploadUrl({
+					jobRoleId: 1,
+					applicantId: "user-abc",
+					mimeType: "application/pdf",
+				}),
 			).rejects.toThrow(JobNotFoundError);
 			expect(mockS3Service.getPresignedPutUrl).not.toHaveBeenCalled();
 		});
@@ -114,7 +123,11 @@ describe("JobApplicationService", () => {
 			);
 
 			await expect(
-				service.generateUploadUrl({ jobRoleId: 1, applicantId: "user-abc" }),
+				service.generateUploadUrl({
+					jobRoleId: 1,
+					applicantId: "user-abc",
+					mimeType: "application/pdf",
+				}),
 			).rejects.toThrow(S3UploadError);
 		});
 	});

@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JobApplicationController } from "../../src/controller/jobApplicationController";
-import { JobNotFoundError } from "../../src/services/errors/jobNotFoundError";
-import { S3UploadError } from "../../src/services/errors/s3UploadError";
 import type { JobApplicationService } from "../../src/services/jobApplicationService";
+import {
+	InvalidApplicationPayloadError,
+	JobNotFoundError,
+	S3UploadError,
+} from "../../src/services/jobApplicationService";
 
 const makeRequest = (overrides: Record<string, unknown> = {}) => ({
 	params: { id: "1" },
@@ -51,7 +54,9 @@ describe("JobApplicationController", () => {
 			const next = vi.fn();
 
 			await controller.getUploadUrl(
-				makeRequest({ query: { fileName: "cv.pdf" } }) as never,
+				makeRequest({
+					query: { fileName: "cv.pdf", mimeType: "application/pdf" },
+				}) as never,
 				response as never,
 				next,
 			);
@@ -69,7 +74,7 @@ describe("JobApplicationController", () => {
 
 			const response = makeResponse();
 			await controller.getUploadUrl(
-				makeRequest() as never,
+				makeRequest({ query: { mimeType: "application/pdf" } }) as never,
 				response as never,
 				vi.fn(),
 			);
@@ -77,8 +82,25 @@ describe("JobApplicationController", () => {
 			expect(mockService.generateUploadUrl).toHaveBeenCalledWith({
 				jobRoleId: 1,
 				applicantId: "user-abc",
+				mimeType: "application/pdf",
 				fileName: undefined,
 			});
+		});
+
+		it("returns 400 when mimeType is missing", async () => {
+			const response = makeResponse();
+
+			await controller.getUploadUrl(
+				makeRequest({ query: { fileName: "cv.pdf" } }) as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(400);
+			expect(response.status(400).json).toHaveBeenCalledWith({
+				message: "mimeType is required",
+			});
+			expect(mockService.generateUploadUrl).not.toHaveBeenCalled();
 		});
 
 		it("returns 401 when no authenticated user", async () => {
@@ -102,7 +124,7 @@ describe("JobApplicationController", () => {
 
 			const response = makeResponse();
 			await controller.getUploadUrl(
-				makeRequest() as never,
+				makeRequest({ query: { mimeType: "application/pdf" } }) as never,
 				response as never,
 				vi.fn(),
 			);
@@ -117,12 +139,32 @@ describe("JobApplicationController", () => {
 
 			const response = makeResponse();
 			await controller.getUploadUrl(
-				makeRequest() as never,
+				makeRequest({ query: { mimeType: "application/pdf" } }) as never,
 				response as never,
 				vi.fn(),
 			);
 
 			expect(response.status).toHaveBeenCalledWith(502);
+		});
+
+		it("returns 400 when service throws InvalidApplicationPayloadError", async () => {
+			vi.mocked(mockService.generateUploadUrl).mockRejectedValue(
+				new InvalidApplicationPayloadError(
+					"Invalid file type. Allowed types: pdf, doc, docx",
+				),
+			);
+
+			const response = makeResponse();
+			await controller.getUploadUrl(
+				makeRequest({ query: { mimeType: "image/png" } }) as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(400);
+			expect(response.status(400).json).toHaveBeenCalledWith({
+				message: "Invalid file type. Allowed types: pdf, doc, docx",
+			});
 		});
 
 		it("calls next for unexpected errors", async () => {
@@ -135,7 +177,7 @@ describe("JobApplicationController", () => {
 			const next = vi.fn();
 
 			await controller.getUploadUrl(
-				makeRequest() as never,
+				makeRequest({ query: { mimeType: "application/pdf" } }) as never,
 				response as never,
 				next,
 			);
@@ -286,6 +328,26 @@ describe("JobApplicationController", () => {
 			expect(response.status).toHaveBeenCalledWith(404);
 			expect(response.status(404).json).toHaveBeenCalledWith({
 				message: "Job role not found",
+			});
+		});
+
+		it("returns 400 when service throws InvalidApplicationPayloadError", async () => {
+			vi.mocked(mockService.createApplication).mockRejectedValue(
+				new InvalidApplicationPayloadError(
+					"Invalid file type. Allowed types: pdf, doc, docx",
+				),
+			);
+
+			const response = makeResponse();
+			await controller.createApplication(
+				makeRequest() as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(400);
+			expect(response.status(400).json).toHaveBeenCalledWith({
+				message: "Invalid file type. Allowed types: pdf, doc, docx",
 			});
 		});
 

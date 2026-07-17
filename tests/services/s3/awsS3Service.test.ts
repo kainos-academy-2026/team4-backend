@@ -164,5 +164,27 @@ describe("AwsS3Service", () => {
 				{ expiresIn: 600 },
 			);
 		});
+
+		it("reuses the same S3 client across multiple operations", async () => {
+			process.env.AWS_REGION = "eu-west-1";
+			process.env.S3_BUCKET_NAME = "job-apps";
+			sendMock.mockResolvedValue({});
+			getSignedUrlMock.mockResolvedValue("https://s3.example.com/presigned");
+
+			const service = new AwsS3Service();
+
+			await service.upload({
+				key: "cvs/2/user-a/cv.pdf",
+				body: Buffer.from("pdf"),
+				mimeType: "application/pdf",
+			});
+
+			await service.getPresignedPutUrl({
+				key: "cvs/2/user-a/cv.pdf",
+				mimeType: "application/pdf",
+			});
+
+			expect(s3ClientMock).toHaveBeenCalledTimes(1);
+		});
 	});
 });

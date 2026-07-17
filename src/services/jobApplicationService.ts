@@ -14,6 +14,7 @@ import { S3UploadError } from "./errors/s3UploadError";
 import { AwsS3Service } from "./s3/awsS3Service";
 import type { S3Service } from "./s3/s3Service";
 
+export { InvalidApplicationPayloadError } from "./errors/invalidApplicationPayloadError";
 export { JobNotFoundError } from "./errors/jobNotFoundError";
 export { S3UploadError } from "./errors/s3UploadError";
 
@@ -28,6 +29,7 @@ export class JobApplicationService {
 	public async generateUploadUrl(params: {
 		jobRoleId: number;
 		applicantId: string;
+		mimeType: string;
 		fileName?: string;
 	}): Promise<{ presignedUrl: string; s3Key: string }> {
 		const jobRole = await this.jobRoleDao.JobRoleDetailedResponse(
@@ -43,7 +45,10 @@ export class JobApplicationService {
 
 		let presignedUrl: string;
 		try {
-			presignedUrl = await this.s3Service.getPresignedPutUrl({ key: s3Key });
+			presignedUrl = await this.s3Service.getPresignedPutUrl({
+				key: s3Key,
+				mimeType: params.mimeType,
+			});
 		} catch (error) {
 			throw new S3UploadError(error);
 		}

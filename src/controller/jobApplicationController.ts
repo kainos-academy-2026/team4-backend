@@ -1,6 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
+import {
+	type IJobApplicationRequestMapper,
+	JobApplicationRequestMapper,
+} from "../mappers/jobApplicationRequestMapper";
 import type { JobApplicationService } from "../services/jobApplicationService";
 import {
+	InvalidApplicationPayloadError,
 	JobNotFoundError,
 	S3UploadError,
 } from "../services/jobApplicationService";
@@ -8,6 +13,7 @@ import {
 export class JobApplicationController {
 	public constructor(
 		private readonly jobApplicationService: JobApplicationService,
+		private readonly jobApplicationRequestMapper: IJobApplicationRequestMapper = new JobApplicationRequestMapper(),
 	) {}
 
 	public getUploadUrl = async (
@@ -16,24 +22,30 @@ export class JobApplicationController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const jobRoleId = Number(request.params.id);
-
 			const applicantId = request.user?.userId;
 			if (!applicantId) {
 				response.status(401).json({ message: "Unauthorised" });
 				return;
 			}
 
-			const fileName = request.query.fileName as string | undefined;
+			const params = this.jobApplicationRequestMapper.toGenerateUploadUrlParams(
+				{
+					jobRoleIdParam: request.params.id,
+					applicantId,
+					mimeType: request.query.mimeType,
+					fileName: request.query.fileName,
+				},
+			);
 
-			const result = await this.jobApplicationService.generateUploadUrl({
-				jobRoleId,
-				applicantId,
-				fileName,
-			});
+			const result = await this.jobApplicationService.generateUploadUrl(params);
 
 			response.status(200).json(result);
 		} catch (error) {
+			if (error instanceof InvalidApplicationPayloadError) {
+				response.status(400).json({ message: error.message });
+				return;
+			}
+
 			if (error instanceof JobNotFoundError) {
 				response.status(404).json({ message: "Job role not found" });
 				return;
@@ -56,39 +68,32 @@ export class JobApplicationController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const jobRoleId = Number(request.params.id);
-
 			const applicantId = request.user?.userId;
 			if (!applicantId) {
 				response.status(401).json({ message: "Unauthorised" });
 				return;
 			}
 
-			const { s3Key, cvFileName, cvMimeType, cvSizeBytes } = request.body as {
-				s3Key?: string;
-				cvFileName?: string;
-				cvMimeType?: string;
-				cvSizeBytes?: number;
-			};
+			const params = this.jobApplicationRequestMapper.toCreateApplicationParams(
+				{
+					jobRoleIdParam: request.params.id,
+					applicantId,
+					s3Key: request.body?.s3Key,
+					cvFileName: request.body?.cvFileName,
+					cvMimeType: request.body?.cvMimeType,
+					cvSizeBytes: request.body?.cvSizeBytes,
+				},
+			);
 
-			if (!s3Key || !cvFileName || !cvMimeType || cvSizeBytes === undefined) {
-				response.status(400).json({
-					message: "s3Key, cvFileName, cvMimeType and cvSizeBytes are required",
-				});
-				return;
-			}
-
-			const result = await this.jobApplicationService.createApplication({
-				jobRoleId,
-				applicantId,
-				s3Key,
-				cvFileName,
-				cvMimeType,
-				cvSizeBytes,
-			});
+			const result = await this.jobApplicationService.createApplication(params);
 
 			response.status(201).json(result);
 		} catch (error) {
+			if (error instanceof InvalidApplicationPayloadError) {
+				response.status(400).json({ message: error.message });
+				return;
+			}
+
 			if (error instanceof JobNotFoundError) {
 				response.status(404).json({ message: "Job role not found" });
 				return;
