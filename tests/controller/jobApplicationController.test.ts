@@ -7,11 +7,12 @@ import type { JobApplicationService } from "../../src/services/jobApplicationSer
 const makeRequest = (overrides: Record<string, unknown> = {}) => ({
 	params: { id: "1" },
 	user: { userId: "user-abc", email: "test@example.com", role: "user" },
-	file: {
-		buffer: Buffer.from("pdf content"),
-		originalname: "cv.pdf",
-		mimetype: "application/pdf",
-		size: 1024,
+	query: {},
+	body: {
+		s3Key: "cvs/1/user-abc/uuid-cv.pdf",
+		cvFileName: "cv.pdf",
+		cvMimeType: "application/pdf",
+		cvSizeBytes: 1024,
 	},
 	...overrides,
 });
@@ -25,6 +26,7 @@ const makeResponse = () => {
 const mockService = {
 	createApplication: vi.fn(),
 	getApplicationForRole: vi.fn(),
+	generateUploadUrl: vi.fn(),
 } as unknown as JobApplicationService;
 
 describe("JobApplicationController", () => {
@@ -33,6 +35,113 @@ describe("JobApplicationController", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		controller = new JobApplicationController(mockService);
+	});
+
+	describe("getUploadUrl", () => {
+		it("returns 200 with presignedUrl and s3Key on success", async () => {
+			const uploadUrlResult = {
+				presignedUrl: "https://s3.example.com/presigned",
+				s3Key: "cvs/1/user-abc/uuid-cv.pdf",
+			};
+			vi.mocked(mockService.generateUploadUrl).mockResolvedValue(
+				uploadUrlResult,
+			);
+
+			const response = makeResponse();
+			const next = vi.fn();
+
+			await controller.getUploadUrl(
+				makeRequest({ query: { fileName: "cv.pdf" } }) as never,
+				response as never,
+				next,
+			);
+
+			expect(response.status).toHaveBeenCalledWith(200);
+			expect(response.status(200).json).toHaveBeenCalledWith(uploadUrlResult);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		it("returns 200 without fileName query param", async () => {
+			vi.mocked(mockService.generateUploadUrl).mockResolvedValue({
+				presignedUrl: "https://s3.example.com/presigned",
+				s3Key: "cvs/1/user-abc/uuid.bin",
+			});
+
+			const response = makeResponse();
+			await controller.getUploadUrl(
+				makeRequest() as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(mockService.generateUploadUrl).toHaveBeenCalledWith({
+				jobRoleId: 1,
+				applicantId: "user-abc",
+				fileName: undefined,
+			});
+		});
+
+		it("returns 401 when no authenticated user", async () => {
+			const response = makeResponse();
+			const next = vi.fn();
+
+			await controller.getUploadUrl(
+				makeRequest({ user: undefined }) as never,
+				response as never,
+				next,
+			);
+
+			expect(response.status).toHaveBeenCalledWith(401);
+			expect(mockService.generateUploadUrl).not.toHaveBeenCalled();
+		});
+
+		it("returns 404 when service throws JobNotFoundError", async () => {
+			vi.mocked(mockService.generateUploadUrl).mockRejectedValue(
+				new JobNotFoundError(),
+			);
+
+			const response = makeResponse();
+			await controller.getUploadUrl(
+				makeRequest() as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(404);
+		});
+
+		it("returns 502 when service throws S3UploadError", async () => {
+			vi.mocked(mockService.generateUploadUrl).mockRejectedValue(
+				new S3UploadError(new Error("S3 down")),
+			);
+
+			const response = makeResponse();
+			await controller.getUploadUrl(
+				makeRequest() as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(502);
+		});
+
+		it("calls next for unexpected errors", async () => {
+			const unexpectedError = new Error("unexpected");
+			vi.mocked(mockService.generateUploadUrl).mockRejectedValue(
+				unexpectedError,
+			);
+
+			const response = makeResponse();
+			const next = vi.fn();
+
+			await controller.getUploadUrl(
+				makeRequest() as never,
+				response as never,
+				next,
+			);
+
+			expect(next).toHaveBeenCalledWith(unexpectedError);
+		});
 	});
 
 	describe("createApplication", () => {
@@ -76,19 +185,87 @@ describe("JobApplicationController", () => {
 			expect(mockService.createApplication).not.toHaveBeenCalled();
 		});
 
-		it("returns 400 when no file is uploaded", async () => {
+		it("returns 400 when s3Key is missing from body", async () => {
 			const response = makeResponse();
 			const next = vi.fn();
 
 			await controller.createApplication(
-				makeRequest({ file: undefined }) as never,
+				makeRequest({
+					body: {
+						cvFileName: "cv.pdf",
+						cvMimeType: "application/pdf",
+						cvSizeBytes: 1024,
+					},
+				}) as never,
 				response as never,
 				next,
 			);
 
 			expect(response.status).toHaveBeenCalledWith(400);
 			expect(response.status(400).json).toHaveBeenCalledWith({
-				message: "CV file is required",
+				message: "s3Key, cvFileName, cvMimeType and cvSizeBytes are required",
+			});
+		});
+
+		it("returns 400 when cvFileName is missing from body", async () => {
+			const response = makeResponse();
+
+			await controller.createApplication(
+				makeRequest({
+					body: {
+						s3Key: "cvs/1/user/uuid.pdf",
+						cvMimeType: "application/pdf",
+						cvSizeBytes: 1024,
+					},
+				}) as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(400);
+		});
+
+		it("returns 400 when cvSizeBytes is missing from body", async () => {
+			const response = makeResponse();
+
+			await controller.createApplication(
+				makeRequest({
+					body: {
+						s3Key: "cvs/1/user/uuid.pdf",
+						cvFileName: "cv.pdf",
+						cvMimeType: "application/pdf",
+					},
+				}) as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(response.status).toHaveBeenCalledWith(400);
+		});
+
+		it("calls service with correct params from body", async () => {
+			vi.mocked(mockService.createApplication).mockResolvedValue({
+				id: 10,
+				jobRoleId: 1,
+				applicantId: "user-abc",
+				status: "in_progress",
+				cvFileName: "cv.pdf",
+			});
+
+			const response = makeResponse();
+			await controller.createApplication(
+				makeRequest() as never,
+				response as never,
+				vi.fn(),
+			);
+
+			expect(mockService.createApplication).toHaveBeenCalledWith({
+				jobRoleId: 1,
+				applicantId: "user-abc",
+				s3Key: "cvs/1/user-abc/uuid-cv.pdf",
+				cvFileName: "cv.pdf",
+				cvMimeType: "application/pdf",
+				cvSizeBytes: 1024,
 			});
 		});
 
@@ -110,23 +287,6 @@ describe("JobApplicationController", () => {
 			expect(response.status(404).json).toHaveBeenCalledWith({
 				message: "Job role not found",
 			});
-		});
-
-		it("returns 502 when service throws S3UploadError", async () => {
-			vi.mocked(mockService.createApplication).mockRejectedValue(
-				new S3UploadError(new Error("S3 down")),
-			);
-
-			const response = makeResponse();
-			const next = vi.fn();
-
-			await controller.createApplication(
-				makeRequest() as never,
-				response as never,
-				next,
-			);
-
-			expect(response.status).toHaveBeenCalledWith(502);
 		});
 
 		it("calls next for unexpected errors", async () => {

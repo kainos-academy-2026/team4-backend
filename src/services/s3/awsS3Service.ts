@@ -1,5 +1,10 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { S3Service, S3UploadParams } from "./s3Service";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import type {
+	S3PresignedPutParams,
+	S3Service,
+	S3UploadParams,
+} from "./s3Service";
 
 export class AwsS3Service implements S3Service {
 	private getClient(): { client: S3Client; bucketName: string } {
@@ -23,5 +28,19 @@ export class AwsS3Service implements S3Service {
 		});
 
 		await client.send(command);
+	}
+
+	async getPresignedPutUrl(params: S3PresignedPutParams): Promise<string> {
+		const { client, bucketName } = this.getClient();
+
+		const command = new PutObjectCommand({
+			Bucket: bucketName,
+			Key: params.key,
+			ContentType: params.mimeType,
+		});
+
+		return getSignedUrl(client, command, {
+			expiresIn: params.expiresIn ?? 300,
+		});
 	}
 }

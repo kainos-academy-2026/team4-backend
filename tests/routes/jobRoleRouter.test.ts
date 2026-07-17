@@ -9,6 +9,7 @@ const mockedAuthorize = vi.fn(() =>
 );
 const mockedCreateApplication = vi.fn();
 const mockedGetApplicationForRole = vi.fn();
+const mockedGetUploadUrl = vi.fn();
 const mockedValidateJobRoleIdParam = vi.fn();
 const mockedRouter = {
 	get: mockedRouterGet,
@@ -37,6 +38,7 @@ vi.mock("../../src/controller/jobApplicationController", () => ({
 		return {
 			createApplication: mockedCreateApplication,
 			getApplicationForRole: mockedGetApplicationForRole,
+			getUploadUrl: mockedGetUploadUrl,
 		};
 	}),
 }));
@@ -49,11 +51,7 @@ vi.mock("../../src/services/jobApplicationService", () => ({
 
 vi.mock("../../src/middleware/authMiddleware", () => ({
 	requireAuth: vi.fn(),
-}));
-
-vi.mock("../../src/middleware/cvUploadMiddleware", () => ({
-	cvUpload: vi.fn(),
-	handleCvUploadErrors: vi.fn(),
+	optionalAuth: vi.fn(),
 }));
 
 vi.mock("../../src/middleware/jobRoleIdParamMiddleware", () => ({
@@ -79,6 +77,14 @@ describe("job role router", () => {
 		expect(jobRolesRouteCall).toBeDefined();
 
 		const jobRolesHandler = jobRolesRouteCall?.[2];
+		const optionalAuthMiddleware = jobRolesRouteCall?.[1];
+		const jobRolesHandler = jobRolesRouteCall?.[2];
+
+		// Get the mock from the mocked module
+		const authMiddlewareMock = await import(
+			"../../src/middleware/authMiddleware"
+		);
+		expect(optionalAuthMiddleware).toBe(authMiddlewareMock.optionalAuth);
 		expect(typeof jobRolesHandler).toBe("function");
 
 		if (!jobRolesHandler) {
@@ -106,8 +112,15 @@ describe("job role router", () => {
 		);
 		expect(jobRoleByIdRouteCall).toBeDefined();
 
-		const jobRoleByIdValidationMiddleware = jobRoleByIdRouteCall?.[1];
-		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[2];
+		const optionalAuthMiddleware = jobRoleByIdRouteCall?.[1];
+		const jobRoleByIdValidationMiddleware = jobRoleByIdRouteCall?.[2];
+		const jobRoleByIdHandler = jobRoleByIdRouteCall?.[3];
+
+		// Get the mock from the mocked module
+		const authMiddlewareMock = await import(
+			"../../src/middleware/authMiddleware"
+		);
+		expect(optionalAuthMiddleware).toBe(authMiddlewareMock.optionalAuth);
 		expect(jobRoleByIdValidationMiddleware).toBe(mockedValidateJobRoleIdParam);
 		expect(typeof jobRoleByIdHandler).toBe("function");
 
@@ -134,12 +147,36 @@ describe("job role router", () => {
 		expect(mockedAuthorize).toHaveBeenCalledTimes(2);
 	});
 
-	it("registers POST /job-roles/:id/applications", async () => {
+	it("registers role-based authorization middleware for both routes", async () => {
+		await import("../../src/routes/jobRoleRouter");
+
+		expect(mockedAuthorize).toHaveBeenCalledTimes(2);
+	});
+
+	it("registers GET /job-roles/:id/applications/upload-url with auth", async () => {
+		await import("../../src/routes/jobRoleRouter");
+
+		const uploadUrlRouteCall = mockedRouterGet.mock.calls.find(
+			(call) => call[0] === "/job-roles/:id/applications/upload-url",
+		);
+		expect(uploadUrlRouteCall).toBeDefined();
+
+		const authMiddlewareMock = await import(
+			"../../src/middleware/authMiddleware"
+		);
+		expect(uploadUrlRouteCall?.[1]).toBe(mockedValidateJobRoleIdParam);
+		expect(uploadUrlRouteCall?.[2]).toBe(authMiddlewareMock.requireAuth);
+	});
+
+	it("registers POST /job-roles/:id/applications without multer", async () => {
 		await import("../../src/routes/jobRoleRouter");
 
 		const postRouteCall = mockedRouterPost.mock.calls.find(
 			(call) => call[0] === "/job-roles/:id/applications",
 		);
 		expect(postRouteCall).toBeDefined();
+
+		// Middleware chain should be: validateJobRoleIdParam, requireAuth, handler (no multer)
+		expect(postRouteCall).toHaveLength(4);
 	});
 });

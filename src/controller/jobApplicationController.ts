@@ -10,6 +10,46 @@ export class JobApplicationController {
 		private readonly jobApplicationService: JobApplicationService,
 	) {}
 
+	public getUploadUrl = async (
+		request: Request,
+		response: Response,
+		next: NextFunction,
+	): Promise<void> => {
+		try {
+			const jobRoleId = Number(request.params.id);
+
+			const applicantId = request.user?.userId;
+			if (!applicantId) {
+				response.status(401).json({ message: "Unauthorised" });
+				return;
+			}
+
+			const fileName = request.query.fileName as string | undefined;
+
+			const result = await this.jobApplicationService.generateUploadUrl({
+				jobRoleId,
+				applicantId,
+				fileName,
+			});
+
+			response.status(200).json(result);
+		} catch (error) {
+			if (error instanceof JobNotFoundError) {
+				response.status(404).json({ message: "Job role not found" });
+				return;
+			}
+
+			if (error instanceof S3UploadError) {
+				response
+					.status(502)
+					.json({ message: "Failed to generate upload URL, please try again" });
+				return;
+			}
+
+			next(error);
+		}
+	};
+
 	public createApplication = async (
 		request: Request,
 		response: Response,
@@ -24,32 +64,33 @@ export class JobApplicationController {
 				return;
 			}
 
-			const file = request.file;
-			if (!file) {
-				response.status(400).json({ message: "CV file is required" });
+			const { s3Key, cvFileName, cvMimeType, cvSizeBytes } = request.body as {
+				s3Key?: string;
+				cvFileName?: string;
+				cvMimeType?: string;
+				cvSizeBytes?: number;
+			};
+
+			if (!s3Key || !cvFileName || !cvMimeType || cvSizeBytes === undefined) {
+				response.status(400).json({
+					message: "s3Key, cvFileName, cvMimeType and cvSizeBytes are required",
+				});
 				return;
 			}
 
 			const result = await this.jobApplicationService.createApplication({
 				jobRoleId,
 				applicantId,
-				cvBuffer: file.buffer,
-				cvFileName: file.originalname,
-				cvMimeType: file.mimetype,
-				cvSizeBytes: file.size,
+				s3Key,
+				cvFileName,
+				cvMimeType,
+				cvSizeBytes,
 			});
 
 			response.status(201).json(result);
 		} catch (error) {
 			if (error instanceof JobNotFoundError) {
 				response.status(404).json({ message: "Job role not found" });
-				return;
-			}
-
-			if (error instanceof S3UploadError) {
-				response
-					.status(502)
-					.json({ message: "Failed to upload CV, please try again" });
 				return;
 			}
 

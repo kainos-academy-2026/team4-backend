@@ -194,3 +194,38 @@ export const requireAuth = async (
 		response.status(401).json({ message: "Unauthorised" });
 	}
 };
+
+export const optionalAuth = async (
+	request: Request,
+	_response: Response,
+	next: NextFunction,
+): Promise<void> => {
+	const authHeader = request.headers.authorization;
+
+	if (!authHeader?.startsWith("Bearer ")) {
+		next();
+		return;
+	}
+
+	const token = authHeader.slice(7);
+	const accessSecret = process.env.JWT_ACCESS_SECRET;
+
+	if (!accessSecret) {
+		next();
+		return;
+	}
+
+	try {
+		const { jwtVerify } = await import("jose");
+		const { payload } = await jwtVerify(token, Buffer.from(accessSecret));
+
+		const parsed = AuthPayloadSchema.safeParse(payload);
+		if (parsed.success) {
+			request.user = parsed.data;
+		}
+	} catch {
+		// Silently ignore auth errors in optional middleware
+	}
+
+	next();
+};

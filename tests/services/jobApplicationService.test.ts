@@ -35,10 +35,10 @@ const mockApplication: JobApplication = {
 	updatedAt: new Date(),
 };
 
-const makeUploadParams = () => ({
+const makeCreateParams = () => ({
 	jobRoleId: 1,
 	applicantId: "user-abc",
-	cvBuffer: Buffer.from("pdf"),
+	s3Key: "cvs/1/user-abc/uuid-cv.pdf",
 	cvFileName: "cv.pdf",
 	cvMimeType: "application/pdf",
 	cvSizeBytes: 1024,
@@ -65,6 +65,7 @@ describe("JobApplicationService", () => {
 
 		mockS3Service = {
 			upload: vi.fn(async () => undefined),
+			getPresignedPutUrl: vi.fn(async () => "https://s3.example.com/presigned"),
 		};
 
 		service = new JobApplicationService(
@@ -74,73 +75,102 @@ describe("JobApplicationService", () => {
 		);
 	});
 
-	it("creates application and returns response on success", async () => {
-		const result = await service.createApplication(makeUploadParams());
+	describe("generateUploadUrl", () => {
+		it("returns presignedUrl and s3Key on success", async () => {
+			const result = await service.generateUploadUrl({
+				jobRoleId: 1,
+				applicantId: "user-abc",
+				fileName: "cv.pdf",
+			});
 
-		expect(mockJobRoleDao.JobRoleDetailedResponse).toHaveBeenCalledWith(1);
-		expect(mockS3Service.upload).toHaveBeenCalledOnce();
-		expect(mockJobApplicationDao.upsert).toHaveBeenCalledOnce();
-		expect(result).toMatchObject({
-			id: 10,
-			jobRoleId: 1,
-			applicantId: "user-abc",
-			status: "in_progress",
-			cvFileName: "cv.pdf",
+			expect(mockJobRoleDao.JobRoleDetailedResponse).toHaveBeenCalledWith(1);
+			expect(mockS3Service.getPresignedPutUrl).toHaveBeenCalledOnce();
+			expect(result.presignedUrl).toBe("https://s3.example.com/presigned");
+			expect(result.s3Key).toContain("cvs/1/user-abc/");
+			expect(result.s3Key).toContain("cv.pdf");
+		});
+
+		it("generates a key with a UUID filename when fileName is not provided", async () => {
+			const result = await service.generateUploadUrl({
+				jobRoleId: 1,
+				applicantId: "user-abc",
+			});
+
+			expect(result.s3Key).toMatch(/^cvs\/1\/user-abc\/.+\.bin$/);
+		});
+
+		it("throws JobNotFoundError when job role does not exist", async () => {
+			vi.mocked(mockJobRoleDao.JobRoleDetailedResponse).mockResolvedValue(null);
+
+			await expect(
+				service.generateUploadUrl({ jobRoleId: 1, applicantId: "user-abc" }),
+			).rejects.toThrow(JobNotFoundError);
+			expect(mockS3Service.getPresignedPutUrl).not.toHaveBeenCalled();
+		});
+
+		it("throws S3UploadError when presigned URL generation fails", async () => {
+			vi.mocked(mockS3Service.getPresignedPutUrl).mockRejectedValue(
+				new Error("S3 unavailable"),
+			);
+
+			await expect(
+				service.generateUploadUrl({ jobRoleId: 1, applicantId: "user-abc" }),
+			).rejects.toThrow(S3UploadError);
 		});
 	});
 
-	it("passes correct status to upsert", async () => {
-		await service.createApplication(makeUploadParams());
+	describe("createApplication", () => {
+		it("creates application and returns response on success", async () => {
+			const result = await service.createApplication(makeCreateParams());
 
-		const upsertCall = vi.mocked(mockJobApplicationDao.upsert).mock.calls[0][0];
-		expect(upsertCall.status).toBe("in_progress");
-	});
+			expect(mockJobRoleDao.JobRoleDetailedResponse).toHaveBeenCalledWith(1);
+			expect(mockS3Service.upload).not.toHaveBeenCalled();
+			expect(mockJobApplicationDao.upsert).toHaveBeenCalledOnce();
+			expect(result).toMatchObject({
+				id: 10,
+				jobRoleId: 1,
+				applicantId: "user-abc",
+				status: "in_progress",
+				cvFileName: "cv.pdf",
+			});
+		});
 
-	it("passes correct CV metadata to upsert", async () => {
-		await service.createApplication(makeUploadParams());
+		it("passes correct status to upsert", async () => {
+			await service.createApplication(makeCreateParams());
 
-		const upsertCall = vi.mocked(mockJobApplicationDao.upsert).mock.calls[0][0];
-		expect(upsertCall.cvFileName).toBe("cv.pdf");
-		expect(upsertCall.cvMimeType).toBe("application/pdf");
-		expect(upsertCall.cvSizeBytes).toBe(1024);
-	});
+			const upsertCall = vi.mocked(mockJobApplicationDao.upsert).mock
+				.calls[0][0];
+			expect(upsertCall.status).toBe("in_progress");
+		});
 
-	it("passes S3 key to upsert that contains jobRoleId and applicantId", async () => {
-		await service.createApplication(makeUploadParams());
+		it("passes correct CV metadata and s3Key to upsert", async () => {
+			await service.createApplication(makeCreateParams());
 
-		const upsertCall = vi.mocked(mockJobApplicationDao.upsert).mock.calls[0][0];
-		expect(upsertCall.cvS3Key).toContain("cvs/1/user-abc/");
-		expect(upsertCall.cvS3Key).toContain("cv.pdf");
-	});
+			const upsertCall = vi.mocked(mockJobApplicationDao.upsert).mock
+				.calls[0][0];
+			expect(upsertCall.cvS3Key).toBe("cvs/1/user-abc/uuid-cv.pdf");
+			expect(upsertCall.cvFileName).toBe("cv.pdf");
+			expect(upsertCall.cvMimeType).toBe("application/pdf");
+			expect(upsertCall.cvSizeBytes).toBe(1024);
+		});
 
-	it("throws JobNotFoundError when job role does not exist", async () => {
-		vi.mocked(mockJobRoleDao.JobRoleDetailedResponse).mockResolvedValue(null);
+		it("throws JobNotFoundError when job role does not exist", async () => {
+			vi.mocked(mockJobRoleDao.JobRoleDetailedResponse).mockResolvedValue(null);
 
-		await expect(service.createApplication(makeUploadParams())).rejects.toThrow(
-			JobNotFoundError,
-		);
-		expect(mockS3Service.upload).not.toHaveBeenCalled();
-		expect(mockJobApplicationDao.upsert).not.toHaveBeenCalled();
-	});
+			await expect(
+				service.createApplication(makeCreateParams()),
+			).rejects.toThrow(JobNotFoundError);
+			expect(mockJobApplicationDao.upsert).not.toHaveBeenCalled();
+		});
 
-	it("throws S3UploadError when S3 upload fails", async () => {
-		vi.mocked(mockS3Service.upload).mockRejectedValue(
-			new Error("S3 unavailable"),
-		);
+		it("rethrows dao errors unchanged", async () => {
+			const daoError = new Error("db error");
+			vi.mocked(mockJobApplicationDao.upsert).mockRejectedValue(daoError);
 
-		await expect(service.createApplication(makeUploadParams())).rejects.toThrow(
-			S3UploadError,
-		);
-		expect(mockJobApplicationDao.upsert).not.toHaveBeenCalled();
-	});
-
-	it("rethrows dao errors unchanged", async () => {
-		const daoError = new Error("db error");
-		vi.mocked(mockJobApplicationDao.upsert).mockRejectedValue(daoError);
-
-		await expect(service.createApplication(makeUploadParams())).rejects.toBe(
-			daoError,
-		);
+			await expect(service.createApplication(makeCreateParams())).rejects.toBe(
+				daoError,
+			);
+		});
 	});
 
 	describe("getApplicationForRole", () => {

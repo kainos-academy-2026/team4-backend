@@ -25,10 +25,36 @@ export class JobApplicationService {
 		private readonly jobApplicationMapper: IJobApplicationMapper = new JobApplicationMapper(),
 	) {}
 
+	public async generateUploadUrl(params: {
+		jobRoleId: number;
+		applicantId: string;
+		fileName?: string;
+	}): Promise<{ presignedUrl: string; s3Key: string }> {
+		const jobRole = await this.jobRoleDao.JobRoleDetailedResponse(
+			params.jobRoleId,
+		);
+
+		if (!jobRole) {
+			throw new JobNotFoundError();
+		}
+
+		const fileName = params.fileName ?? `${randomUUID()}.bin`;
+		const s3Key = `cvs/${params.jobRoleId}/${params.applicantId}/${randomUUID()}-${fileName}`;
+
+		let presignedUrl: string;
+		try {
+			presignedUrl = await this.s3Service.getPresignedPutUrl({ key: s3Key });
+		} catch (error) {
+			throw new S3UploadError(error);
+		}
+
+		return { presignedUrl, s3Key };
+	}
+
 	public async createApplication(params: {
 		jobRoleId: number;
 		applicantId: string;
-		cvBuffer: Buffer;
+		s3Key: string;
 		cvFileName: string;
 		cvMimeType: string;
 		cvSizeBytes: number;
@@ -41,23 +67,11 @@ export class JobApplicationService {
 			throw new JobNotFoundError();
 		}
 
-		const cvS3Key = `cvs/${params.jobRoleId}/${params.applicantId}/${randomUUID()}-${params.cvFileName}`;
-
-		try {
-			await this.s3Service.upload({
-				key: cvS3Key,
-				body: params.cvBuffer,
-				mimeType: params.cvMimeType,
-			});
-		} catch (error) {
-			throw new S3UploadError(error);
-		}
-
 		const application = await this.jobApplicationDao.upsert({
 			jobRoleId: params.jobRoleId,
 			applicantId: params.applicantId,
 			status: APPLICATION_STATUS.IN_PROGRESS,
-			cvS3Key,
+			cvS3Key: params.s3Key,
 			cvFileName: params.cvFileName,
 			cvMimeType: params.cvMimeType,
 			cvSizeBytes: params.cvSizeBytes,
