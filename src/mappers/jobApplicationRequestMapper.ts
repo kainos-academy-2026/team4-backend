@@ -3,35 +3,50 @@ import {
 	CreateApplicationInputSchema,
 	type GenerateUploadUrlInputDto,
 	GenerateUploadUrlInputSchema,
+	type GetApplicationForRoleInputDto,
+	GetApplicationForRoleInputSchema,
 } from "../dto/jobApplicationDto";
 import { InvalidApplicationPayloadError } from "../services/errors/invalidApplicationPayloadError";
 
+export interface GenerateUploadUrlRequestInput {
+	jobRoleIdParam: unknown;
+	applicantId: string;
+	mimeType: unknown;
+	fileName: unknown;
+}
+
+export interface CreateApplicationRequestInput {
+	jobRoleIdParam: unknown;
+	applicantId: string;
+	s3Key: unknown;
+	cvFileName: unknown;
+	cvMimeType: unknown;
+	cvSizeBytes: unknown;
+}
+
+export interface GetApplicationForRoleRequestInput {
+	jobRoleIdParam: unknown;
+	applicantId: string;
+}
+
 export interface IJobApplicationRequestMapper {
-	toGenerateUploadUrlParams(input: {
-		jobRoleIdParam: unknown;
-		applicantId: string;
-		mimeType: unknown;
-		fileName: unknown;
-	}): GenerateUploadUrlInputDto;
-	toCreateApplicationParams(input: {
-		jobRoleIdParam: unknown;
-		applicantId: string;
-		s3Key: unknown;
-		cvFileName: unknown;
-		cvMimeType: unknown;
-		cvSizeBytes: unknown;
-	}): CreateApplicationInputDto;
+	toGenerateUploadUrlParams(
+		input: GenerateUploadUrlRequestInput,
+	): GenerateUploadUrlInputDto;
+	toCreateApplicationParams(
+		input: CreateApplicationRequestInput,
+	): CreateApplicationInputDto;
+	toGetApplicationForRoleParams(
+		input: GetApplicationForRoleRequestInput,
+	): GetApplicationForRoleInputDto;
 }
 
 export class JobApplicationRequestMapper
 	implements IJobApplicationRequestMapper
 {
-	public toGenerateUploadUrlParams(input: {
-		jobRoleIdParam: unknown;
-		applicantId: string;
-		mimeType: unknown;
-		fileName: unknown;
-	}): GenerateUploadUrlInputDto {
+	public toGenerateUploadUrlParams(
+		input: GenerateUploadUrlRequestInput,
+	): GenerateUploadUrlInputDto {
 		const parsed = GenerateUploadUrlInputSchema.safeParse({
 			jobRoleId: input.jobRoleIdParam,
 			applicantId: input.applicantId,
@@ -49,14 +64,9 @@ export class JobApplicationRequestMapper
 		return parsed.data;
 	}
 
-	public toCreateApplicationParams(input: {
-		jobRoleIdParam: unknown;
-		applicantId: string;
-		s3Key: unknown;
-		cvFileName: unknown;
-		cvMimeType: unknown;
-		cvSizeBytes: unknown;
-	}): CreateApplicationInputDto {
+	public toCreateApplicationParams(
+		input: CreateApplicationRequestInput,
+	): CreateApplicationInputDto {
 		const parsed = CreateApplicationInputSchema.safeParse({
 			jobRoleId: input.jobRoleIdParam,
 			applicantId: input.applicantId,
@@ -82,6 +92,24 @@ export class JobApplicationRequestMapper
 				);
 			}
 
+			const firstIssue = parsed.error.issues[0];
+			throw new InvalidApplicationPayloadError(
+				firstIssue?.message ?? "Invalid application payload",
+			);
+		}
+
+		return parsed.data;
+	}
+
+	public toGetApplicationForRoleParams(
+		input: GetApplicationForRoleRequestInput,
+	): GetApplicationForRoleInputDto {
+		const parsed = GetApplicationForRoleInputSchema.safeParse({
+			jobRoleId: input.jobRoleIdParam,
+			applicantId: input.applicantId,
+		});
+
+		if (!parsed.success) {
 			const firstIssue = parsed.error.issues[0];
 			throw new InvalidApplicationPayloadError(
 				firstIssue?.message ?? "Invalid application payload",

@@ -1,8 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import {
-	type IJobApplicationRequestMapper,
-	JobApplicationRequestMapper,
-} from "../mappers/jobApplicationRequestMapper";
 import type { JobApplicationService } from "../services/jobApplicationService";
 import {
 	InvalidApplicationPayloadError,
@@ -13,7 +9,6 @@ import {
 export class JobApplicationController {
 	public constructor(
 		private readonly jobApplicationService: JobApplicationService,
-		private readonly jobApplicationRequestMapper: IJobApplicationRequestMapper = new JobApplicationRequestMapper(),
 	) {}
 
 	public getUploadUrl = async (
@@ -28,16 +23,12 @@ export class JobApplicationController {
 				return;
 			}
 
-			const params = this.jobApplicationRequestMapper.toGenerateUploadUrlParams(
-				{
-					jobRoleIdParam: request.params.id,
-					applicantId,
-					mimeType: request.query.mimeType,
-					fileName: request.query.fileName,
-				},
-			);
-
-			const result = await this.jobApplicationService.generateUploadUrl(params);
+			const result = await this.jobApplicationService.generateUploadUrl({
+				jobRoleIdParam: request.params.id,
+				applicantId,
+				mimeType: request.query.mimeType,
+				fileName: request.query.fileName,
+			});
 
 			response.status(200).json(result);
 		} catch (error) {
@@ -74,18 +65,14 @@ export class JobApplicationController {
 				return;
 			}
 
-			const params = this.jobApplicationRequestMapper.toCreateApplicationParams(
-				{
-					jobRoleIdParam: request.params.id,
-					applicantId,
-					s3Key: request.body?.s3Key,
-					cvFileName: request.body?.cvFileName,
-					cvMimeType: request.body?.cvMimeType,
-					cvSizeBytes: request.body?.cvSizeBytes,
-				},
-			);
-
-			const result = await this.jobApplicationService.createApplication(params);
+			const result = await this.jobApplicationService.createApplication({
+				jobRoleIdParam: request.params.id,
+				applicantId,
+				s3Key: request.body?.s3Key,
+				cvFileName: request.body?.cvFileName,
+				cvMimeType: request.body?.cvMimeType,
+				cvSizeBytes: request.body?.cvSizeBytes,
+			});
 
 			response.status(201).json(result);
 		} catch (error) {
@@ -109,8 +96,6 @@ export class JobApplicationController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const jobRoleId = Number(request.params.id);
-
 			const applicantId = request.user?.userId;
 			if (!applicantId) {
 				response.status(401).json({ message: "Unauthorised" });
@@ -119,7 +104,7 @@ export class JobApplicationController {
 
 			const application =
 				await this.jobApplicationService.getApplicationForRole(
-					jobRoleId,
+					request.params.id,
 					applicantId,
 				);
 

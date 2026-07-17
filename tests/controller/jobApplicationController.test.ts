@@ -21,8 +21,10 @@ const makeRequest = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const makeResponse = () => {
-	const json = vi.fn();
-	const status = vi.fn(() => ({ json }));
+	const json = vi.fn<(payload: unknown) => void>();
+	const status = vi.fn<(code: number) => { json: typeof json }>(() => ({
+		json,
+	}));
 	return { status, json };
 };
 
@@ -62,7 +64,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(200);
-			expect(response.status(200).json).toHaveBeenCalledWith(uploadUrlResult);
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual(uploadUrlResult);
 			expect(next).not.toHaveBeenCalled();
 		});
 
@@ -80,14 +83,18 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(mockService.generateUploadUrl).toHaveBeenCalledWith({
-				jobRoleId: 1,
+				jobRoleIdParam: "1",
 				applicantId: "user-abc",
 				mimeType: "application/pdf",
 				fileName: undefined,
 			});
 		});
 
-		it("returns 400 when mimeType is missing", async () => {
+		it("returns 400 when service throws InvalidApplicationPayloadError for missing mimeType", async () => {
+			vi.mocked(mockService.generateUploadUrl).mockRejectedValue(
+				new InvalidApplicationPayloadError("mimeType is required"),
+			);
+
 			const response = makeResponse();
 
 			await controller.getUploadUrl(
@@ -97,10 +104,16 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(400);
-			expect(response.status(400).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "mimeType is required",
 			});
-			expect(mockService.generateUploadUrl).not.toHaveBeenCalled();
+			expect(mockService.generateUploadUrl).toHaveBeenCalledWith({
+				jobRoleIdParam: "1",
+				applicantId: "user-abc",
+				mimeType: undefined,
+				fileName: "cv.pdf",
+			});
 		});
 
 		it("returns 401 when no authenticated user", async () => {
@@ -162,7 +175,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(400);
-			expect(response.status(400).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "Invalid file type. Allowed types: pdf, doc, docx",
 			});
 		});
@@ -209,7 +223,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(201);
-			expect(response.status(201).json).toHaveBeenCalledWith(applicationResult);
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual(applicationResult);
 			expect(next).not.toHaveBeenCalled();
 		});
 
@@ -227,7 +242,13 @@ describe("JobApplicationController", () => {
 			expect(mockService.createApplication).not.toHaveBeenCalled();
 		});
 
-		it("returns 400 when s3Key is missing from body", async () => {
+		it("returns 400 when service throws InvalidApplicationPayloadError for missing required fields", async () => {
+			vi.mocked(mockService.createApplication).mockRejectedValue(
+				new InvalidApplicationPayloadError(
+					"s3Key, cvFileName, cvMimeType and cvSizeBytes are required",
+				),
+			);
+
 			const response = makeResponse();
 			const next = vi.fn();
 
@@ -244,45 +265,11 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(400);
-			expect(response.status(400).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "s3Key, cvFileName, cvMimeType and cvSizeBytes are required",
 			});
-		});
-
-		it("returns 400 when cvFileName is missing from body", async () => {
-			const response = makeResponse();
-
-			await controller.createApplication(
-				makeRequest({
-					body: {
-						s3Key: "cvs/1/user/uuid.pdf",
-						cvMimeType: "application/pdf",
-						cvSizeBytes: 1024,
-					},
-				}) as never,
-				response as never,
-				vi.fn(),
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
-		});
-
-		it("returns 400 when cvSizeBytes is missing from body", async () => {
-			const response = makeResponse();
-
-			await controller.createApplication(
-				makeRequest({
-					body: {
-						s3Key: "cvs/1/user/uuid.pdf",
-						cvFileName: "cv.pdf",
-						cvMimeType: "application/pdf",
-					},
-				}) as never,
-				response as never,
-				vi.fn(),
-			);
-
-			expect(response.status).toHaveBeenCalledWith(400);
+			expect(next).not.toHaveBeenCalled();
 		});
 
 		it("calls service with correct params from body", async () => {
@@ -302,7 +289,7 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(mockService.createApplication).toHaveBeenCalledWith({
-				jobRoleId: 1,
+				jobRoleIdParam: "1",
 				applicantId: "user-abc",
 				s3Key: "cvs/1/user-abc/uuid-cv.pdf",
 				cvFileName: "cv.pdf",
@@ -326,7 +313,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(404);
-			expect(response.status(404).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "Job role not found",
 			});
 		});
@@ -346,7 +334,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(400);
-			expect(response.status(400).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "Invalid file type. Allowed types: pdf, doc, docx",
 			});
 		});
@@ -392,8 +381,13 @@ describe("JobApplicationController", () => {
 				next,
 			);
 
+			expect(mockService.getApplicationForRole).toHaveBeenCalledWith(
+				"1",
+				"user-abc",
+			);
 			expect(response.status).toHaveBeenCalledWith(200);
-			expect(response.status(200).json).toHaveBeenCalledWith(applicationResult);
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual(applicationResult);
 			expect(next).not.toHaveBeenCalled();
 		});
 
@@ -410,7 +404,8 @@ describe("JobApplicationController", () => {
 			);
 
 			expect(response.status).toHaveBeenCalledWith(404);
-			expect(response.status(404).json).toHaveBeenCalledWith({
+			expect(response.json).toHaveBeenCalled();
+			expect(response.json.mock.calls[0]?.[0]).toEqual({
 				message: "No application found",
 			});
 		});

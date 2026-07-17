@@ -198,6 +198,52 @@ describe("job role service", () => {
 		toResponsesSpy.mockRestore();
 	});
 
+	it("does not add myApplication when lookup returns null", async () => {
+		const mockJobRoles: readonly JobRole[] = [
+			{
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				bandId: 2,
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+			},
+		];
+		const mappedResponses = [
+			{
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				bandId: 2,
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+			},
+		];
+
+		const mockDao = {
+			getJobRoles: async () => mockJobRoles,
+			JobRoleDetailedResponse: vi.fn(),
+		};
+		const mockMapper = new JobRoleMapper();
+		vi.spyOn(mockMapper, "toResponses").mockReturnValue(mappedResponses);
+
+		const mockApplicationService = {
+			getApplicationForRole: vi.fn(async () => null),
+		} as unknown as JobApplicationService;
+
+		const service = new JobRoleService(
+			mockDao,
+			mockMapper,
+			mockApplicationService,
+		);
+
+		const result = await service.getJobRoles("user-123");
+
+		expect(result).toEqual(mappedResponses);
+	});
+
 	it("rethrows DAO errors unchanged", async () => {
 		const daoError = new Error("dao failure");
 		const mockDao = {
@@ -217,6 +263,61 @@ describe("job role service", () => {
 		);
 
 		await expect(service.getJobRoles()).rejects.toBe(daoError);
+	});
+
+	it("returns original role response when application lookup throws", async () => {
+		const mockJobRoles: readonly JobRole[] = [
+			{
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				bandId: 2,
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+			},
+		];
+		const mappedResponses = [
+			{
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				bandId: 2,
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+			},
+		];
+
+		const consoleErrorSpy = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+
+		const mockDao = {
+			getJobRoles: async () => mockJobRoles,
+			JobRoleDetailedResponse: vi.fn(),
+		};
+		const mockMapper = new JobRoleMapper();
+		vi.spyOn(mockMapper, "toResponses").mockReturnValue(mappedResponses);
+
+		const mockApplicationService = {
+			getApplicationForRole: vi.fn(async () => {
+				throw new Error("application lookup failed");
+			}),
+		} as unknown as JobApplicationService;
+
+		const service = new JobRoleService(
+			mockDao,
+			mockMapper,
+			mockApplicationService,
+		);
+
+		const result = await service.getJobRoles("user-123");
+
+		expect(result).toEqual(mappedResponses);
+		expect(consoleErrorSpy).toHaveBeenCalled();
+
+		consoleErrorSpy.mockRestore();
 	});
 
 	describe("JobRoleDetailedResponse", () => {
@@ -315,6 +416,45 @@ describe("job role service", () => {
 			toResponseSpy.mockRestore();
 		});
 
+		it("returns detailed response without myApplication when lookup returns null", async () => {
+			const mockJobRole: JobRole = {
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				capabilityName: "Engineering",
+				bandId: 2,
+				bandName: "B2",
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+				description: "A backend role",
+				responsibilities: "Write code",
+			};
+
+			const mockDao = {
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: vi.fn(async () => mockJobRole),
+			};
+			const mockMapper = new JobRoleMapper();
+			const mockApplicationService = {
+				getApplicationForRole: vi.fn(async () => null),
+			} as unknown as JobApplicationService;
+
+			const service = new JobRoleService(
+				mockDao,
+				mockMapper,
+				mockApplicationService,
+			);
+
+			const result = await service.JobRoleDetailedResponse(1, "user-123");
+
+			expect(result).toMatchObject({
+				id: 1,
+				roleName: "Backend Engineer",
+			});
+			expect(result).not.toHaveProperty("myApplication");
+		});
+
 		it("returns null when DAO returns null without calling mapper", async () => {
 			const mockDao = {
 				getJobRoles: vi.fn(),
@@ -361,6 +501,54 @@ describe("job role service", () => {
 			);
 
 			await expect(service.JobRoleDetailedResponse(1)).rejects.toBe(daoError);
+		});
+
+		it("returns detailed response without myApplication when application lookup throws", async () => {
+			const mockJobRole: JobRole = {
+				id: 1,
+				roleName: "Backend Engineer",
+				location: "Manchester",
+				capabilityId: 1,
+				capabilityName: "Engineering",
+				bandId: 2,
+				bandName: "B2",
+				closingDate: new Date("2026-08-01T00:00:00.000Z"),
+				status: "Open",
+				description: "A backend role",
+				responsibilities: "Write code",
+			};
+
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => undefined);
+
+			const mockDao = {
+				getJobRoles: vi.fn(),
+				JobRoleDetailedResponse: vi.fn(async () => mockJobRole),
+			};
+			const mockMapper = new JobRoleMapper();
+			const mockApplicationService = {
+				getApplicationForRole: vi.fn(async () => {
+					throw new Error("application lookup failed");
+				}),
+			} as unknown as JobApplicationService;
+
+			const service = new JobRoleService(
+				mockDao,
+				mockMapper,
+				mockApplicationService,
+			);
+
+			const result = await service.JobRoleDetailedResponse(1, "user-123");
+
+			expect(result).toMatchObject({
+				id: 1,
+				roleName: "Backend Engineer",
+			});
+			expect(result).not.toHaveProperty("myApplication");
+			expect(consoleErrorSpy).toHaveBeenCalled();
+
+			consoleErrorSpy.mockRestore();
 		});
 	});
 });

@@ -55,9 +55,17 @@ export const CreateApplicationInputSchema = z
 		}
 	});
 
+export const GetApplicationForRoleInputSchema = z.object({
+	jobRoleId: z.coerce.number().int().positive("Invalid job role id"),
+	applicantId: z.string().min(1, "Unauthorised"),
+});
+
 export type GenerateUploadUrlInputDto = z.infer<
 	typeof GenerateUploadUrlInputSchema
 >;
 export type CreateApplicationInputDto = z.infer<
 	typeof CreateApplicationInputSchema
+>;
+export type GetApplicationForRoleInputDto = z.infer<
+	typeof GetApplicationForRoleInputSchema
 >;

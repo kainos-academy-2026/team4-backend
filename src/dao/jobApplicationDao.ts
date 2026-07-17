@@ -5,16 +5,18 @@ import {
 import type { JobApplication } from "../models/jobApplication";
 import { getPrismaClient } from "../prismaClient";
 
+export interface UpsertJobApplicationParams {
+	jobRoleId: number;
+	applicantId: string;
+	status: string;
+	cvS3Key: string;
+	cvFileName: string;
+	cvMimeType: string;
+	cvSizeBytes: number;
+}
+
 export interface JobApplicationDao {
-	upsert(params: {
-		jobRoleId: number;
-		applicantId: string;
-		status: string;
-		cvS3Key: string;
-		cvFileName: string;
-		cvMimeType: string;
-		cvSizeBytes: number;
-	}): Promise<JobApplication>;
+	upsert(params: UpsertJobApplicationParams): Promise<JobApplication>;
 	findByJobRoleAndApplicant(
 		jobRoleId: number,
 		applicantId: string,
@@ -26,15 +28,9 @@ export class PrismaJobApplicationDao implements JobApplicationDao {
 		private readonly jobApplicationMapper: IJobApplicationMapper = new JobApplicationMapper(),
 	) {}
 
-	public async upsert(params: {
-		jobRoleId: number;
-		applicantId: string;
-		status: string;
-		cvS3Key: string;
-		cvFileName: string;
-		cvMimeType: string;
-		cvSizeBytes: number;
-	}): Promise<JobApplication> {
+	public async upsert(
+		params: UpsertJobApplicationParams,
+	): Promise<JobApplication> {
 		const prisma = getPrismaClient();
 
 		const record = await prisma.jobApplication.upsert({

@@ -84,7 +84,7 @@ vi.mock("jose", () => ({
 }));
 
 import { jwtVerify } from "jose";
-import { requireAuth } from "../../src/middleware/authMiddleware";
+import { optionalAuth, requireAuth } from "../../src/middleware/authMiddleware";
 
 const makeRequest = (authHeader?: string) => ({
 	headers: {
@@ -191,5 +191,103 @@ describe("requireAuth middleware", () => {
 
 		expect(response.status).toHaveBeenCalledWith(401);
 		expect(next).not.toHaveBeenCalled();
+	});
+});
+
+describe("optionalAuth middleware", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		process.env.JWT_ACCESS_SECRET = "a".repeat(128);
+	});
+
+	it("calls next and leaves request.user undefined when Authorization header is missing", async () => {
+		const request = makeRequest(undefined);
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(jwtVerify).not.toHaveBeenCalled();
+		expect(request.user).toBeUndefined();
+	});
+
+	it("calls next and leaves request.user undefined when header is not Bearer", async () => {
+		const request = makeRequest("Basic not-a-bearer-token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(jwtVerify).not.toHaveBeenCalled();
+		expect(request.user).toBeUndefined();
+	});
+
+	it("calls next and leaves request.user undefined when JWT_ACCESS_SECRET is missing", async () => {
+		delete process.env.JWT_ACCESS_SECRET;
+
+		const request = makeRequest("Bearer some.token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(jwtVerify).not.toHaveBeenCalled();
+		expect(request.user).toBeUndefined();
+	});
+
+	it("attaches request.user when token is valid", async () => {
+		vi.mocked(jwtVerify).mockResolvedValue({
+			payload: {
+				userId: "user-optional",
+				email: "optional@example.com",
+				role: "user",
+			},
+			protectedHeader: { alg: "HS256" },
+		});
+
+		const request = makeRequest("Bearer valid.token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(request.user).toMatchObject({
+			userId: "user-optional",
+			email: "optional@example.com",
+			role: "user",
+		});
+	});
+
+	it("ignores invalid payload shape and still calls next", async () => {
+		vi.mocked(jwtVerify).mockResolvedValue({
+			payload: { sub: "missing-fields" },
+			protectedHeader: { alg: "HS256" },
+		});
+
+		const request = makeRequest("Bearer some.token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(request.user).toBeUndefined();
+	});
+
+	it("ignores jwtVerify errors and still calls next", async () => {
+		vi.mocked(jwtVerify).mockRejectedValue(new Error("invalid token"));
+
+		const request = makeRequest("Bearer bad.token");
+		const response = makeResponse();
+		const next = vi.fn();
+
+		await optionalAuth(request as never, response as never, next);
+
+		expect(next).toHaveBeenCalledWith();
+		expect(request.user).toBeUndefined();
 	});
 });

@@ -3,6 +3,7 @@ import type { JobApplicationDao } from "../../src/dao/jobApplicationDao";
 import type { JobRoleDao } from "../../src/dao/jobRoleDao";
 import type { JobApplication } from "../../src/models/jobApplication";
 import type { JobRole } from "../../src/models/jobRole";
+import { InvalidApplicationPayloadError } from "../../src/services/errors/invalidApplicationPayloadError";
 import { JobNotFoundError } from "../../src/services/errors/jobNotFoundError";
 import { S3UploadError } from "../../src/services/errors/s3UploadError";
 import { JobApplicationService } from "../../src/services/jobApplicationService";
@@ -36,7 +37,7 @@ const mockApplication: JobApplication = {
 };
 
 const makeCreateParams = () => ({
-	jobRoleId: 1,
+	jobRoleIdParam: "1",
 	applicantId: "user-abc",
 	s3Key: "cvs/1/user-abc/uuid-cv.pdf",
 	cvFileName: "cv.pdf",
@@ -78,7 +79,7 @@ describe("JobApplicationService", () => {
 	describe("generateUploadUrl", () => {
 		it("returns presignedUrl and s3Key on success", async () => {
 			const result = await service.generateUploadUrl({
-				jobRoleId: 1,
+				jobRoleIdParam: "1",
 				applicantId: "user-abc",
 				mimeType: "application/pdf",
 				fileName: "cv.pdf",
@@ -96,9 +97,10 @@ describe("JobApplicationService", () => {
 
 		it("generates a key with a UUID filename when fileName is not provided", async () => {
 			const result = await service.generateUploadUrl({
-				jobRoleId: 1,
+				jobRoleIdParam: "1",
 				applicantId: "user-abc",
 				mimeType: "application/pdf",
+				fileName: undefined,
 			});
 
 			expect(result.s3Key).toMatch(/^cvs\/1\/user-abc\/.+\.bin$/);
@@ -109,9 +111,10 @@ describe("JobApplicationService", () => {
 
 			await expect(
 				service.generateUploadUrl({
-					jobRoleId: 1,
+					jobRoleIdParam: "1",
 					applicantId: "user-abc",
 					mimeType: "application/pdf",
+					fileName: undefined,
 				}),
 			).rejects.toThrow(JobNotFoundError);
 			expect(mockS3Service.getPresignedPutUrl).not.toHaveBeenCalled();
@@ -124,11 +127,25 @@ describe("JobApplicationService", () => {
 
 			await expect(
 				service.generateUploadUrl({
-					jobRoleId: 1,
+					jobRoleIdParam: "1",
 					applicantId: "user-abc",
 					mimeType: "application/pdf",
+					fileName: undefined,
 				}),
 			).rejects.toThrow(S3UploadError);
+		});
+
+		it("throws InvalidApplicationPayloadError for invalid mimeType", async () => {
+			await expect(
+				service.generateUploadUrl({
+					jobRoleIdParam: "1",
+					applicantId: "user-abc",
+					mimeType: "image/png",
+					fileName: "cv.png",
+				}),
+			).rejects.toThrow(InvalidApplicationPayloadError);
+
+			expect(mockJobRoleDao.JobRoleDetailedResponse).not.toHaveBeenCalled();
 		});
 	});
 
@@ -192,7 +209,7 @@ describe("JobApplicationService", () => {
 				mockJobApplicationDao.findByJobRoleAndApplicant,
 			).mockResolvedValue(mockApplication);
 
-			const result = await service.getApplicationForRole(1, "user-abc");
+			const result = await service.getApplicationForRole("1", "user-abc");
 
 			expect(
 				mockJobApplicationDao.findByJobRoleAndApplicant,
@@ -211,9 +228,19 @@ describe("JobApplicationService", () => {
 				mockJobApplicationDao.findByJobRoleAndApplicant,
 			).mockResolvedValue(null);
 
-			const result = await service.getApplicationForRole(1, "user-abc");
+			const result = await service.getApplicationForRole("1", "user-abc");
 
 			expect(result).toBeNull();
+		});
+
+		it("throws InvalidApplicationPayloadError when job role id is invalid", async () => {
+			await expect(
+				service.getApplicationForRole("not-a-number", "user-abc"),
+			).rejects.toThrow(InvalidApplicationPayloadError);
+
+			expect(
+				mockJobApplicationDao.findByJobRoleAndApplicant,
+			).not.toHaveBeenCalled();
 		});
 	});
 });
