@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Role } from "../../src/Auth/role";
-import { authorize } from "../../src/Middleware/authMiddleware";
+import { authorize } from "../../src/middleware/authMiddleware";
 
 const mockedVerifyAuthToken = vi.hoisted(() => vi.fn());
 
