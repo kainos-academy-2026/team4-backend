@@ -56,6 +56,9 @@ As you generate code, you should generate tests alongside, aiming for:
 - 100% coverage where feasbile, if not, manually flag that it isn't feasible and why.
 - A comprehensive consideration of edge cases, ensuring that a good number are covered.
 
+**Test Case Generation:**
+Use the **Test_Cases skill** to generate comprehensive test plans in CSV format. The skill provides structured guidance for identifying test cases across all test categories (Happy Path, Unhappy Path, Data Validation, Edge Cases, Authorization & Security, Error Handling). Refer to `.github/skills/Test_Cases.md` for details on test plan structure and CSV output format.
+
 ## Security & Best Practices
 <!-- Security standards, authentication/authorization patterns, data handling -->
 When developing code, you should do so with security in mind. However, do not go beyond the scope of the ticket.
