@@ -72,7 +72,7 @@ describe("index route wiring", () => {
 		expect(mockedGet).toHaveBeenCalledWith("/health", expect.any(Function));
 		expect(mockedUse).toHaveBeenCalledWith(expect.any(Function));
 		expect(mockedUse).toHaveBeenCalledWith("/auth", mockedAuthRouter);
-		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
+		expect(mockedUse).toHaveBeenCalledWith("/", mockedJobRoleRouter);
 
 		const healthCall = mockedGet.mock.calls.find(
 			(call) => call[0] === "/health",
@@ -100,16 +100,16 @@ describe("index route wiring", () => {
 		expect(Number.isNaN(Date.parse(payload?.time ?? ""))).toBe(false);
 	});
 
-	it("mounts the job role router", async () => {
+	it("mounts the job role router at root path", async () => {
 		await import("../src/index.ts");
 
-		expect(mockedUse).toHaveBeenCalledWith(mockedJobRoleRouter);
+		expect(mockedUse).toHaveBeenCalledWith("/", mockedJobRoleRouter);
 	});
 
-	it("starts server on default port 3000 when PORT is not set", async () => {
+	it("starts server on default port 4000 when PORT is not set", async () => {
 		await import("../src/index.ts");
 
-		expect(mockedListen).toHaveBeenCalledWith(3000, expect.any(Function));
+		expect(mockedListen).toHaveBeenCalledWith(4000, expect.any(Function));
 	});
 
 	it("uses PORT env var when provided", async () => {
@@ -125,15 +125,15 @@ describe("index route wiring", () => {
 
 		await import("../src/index.ts");
 
-		expect(mockedListen).toHaveBeenCalledWith(3000, expect.any(Function));
+		expect(mockedListen).toHaveBeenCalledWith(4000, expect.any(Function));
 	});
 
-	it("uses port 0 when PORT is set to 0", async () => {
+	it("falls back to default port when PORT is set to 0", async () => {
 		process.env.PORT = "0";
 
 		await import("../src/index.ts");
 
-		expect(mockedListen).toHaveBeenCalledWith(0, expect.any(Function));
+		expect(mockedListen).toHaveBeenCalledWith(4000, expect.any(Function));
 	});
 
 	it("logs startup message when server starts listening", async () => {

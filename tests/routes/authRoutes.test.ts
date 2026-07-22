@@ -68,6 +68,27 @@ describe("authRouter", () => {
 		);
 	});
 
+	it("delegates login handler to auth controller", async () => {
+		await import("../../src/routes/authRoutes");
+
+		const loginCall = mockedPost.mock.calls.find(
+			(call) => call[0] === "/login",
+		);
+		expect(loginCall).toBeDefined();
+
+		const routeHandler = loginCall?.[2] as (
+			request: Request,
+			response: Response,
+		) => void;
+
+		const request = { body: { email: "user@example.com", password: "x" } };
+		const response = { status: vi.fn(), json: vi.fn() };
+
+		routeHandler(request as Request, response as Response);
+
+		expect(mockedController.login).toHaveBeenCalledWith(request, response);
+	});
+
 	it("returns 400 when login payload is invalid", async () => {
 		await import("../../src/routes/authRoutes");
 

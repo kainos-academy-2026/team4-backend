@@ -5,12 +5,13 @@ export class JobRoleController {
 	public constructor(private readonly jobRoleService: JobRoleService) {}
 
 	public getJobRoles = async (
-		_request: Request,
+		request: Request,
 		response: Response,
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const jobRoles = await this.jobRoleService.getJobRoles();
+			const userId = request.user?.userId;
+			const jobRoles = await this.jobRoleService.getJobRoles(userId);
 			response.status(200).json(jobRoles);
 		} catch (error) {
 			next(error);
@@ -23,26 +24,13 @@ export class JobRoleController {
 		next: NextFunction,
 	): Promise<void> => {
 		try {
-			const rawJobRoleId = request.params.id;
+			const jobRoleId = Number(request.params.id);
+			const userId = request.user?.userId;
 
-			// Only accept plain positive integer strings as route ids.
-			if (
-				typeof rawJobRoleId !== "string" ||
-				!/^[1-9]\d*$/.test(rawJobRoleId)
-			) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
-
-			const jobRoleId = Number(rawJobRoleId);
-
-			if (!Number.isSafeInteger(jobRoleId)) {
-				response.status(400).json({ message: "Invalid job role id" });
-				return;
-			}
-
-			const jobRole =
-				await this.jobRoleService.JobRoleDetailedResponse(jobRoleId);
+			const jobRole = await this.jobRoleService.JobRoleDetailedResponse(
+				jobRoleId,
+				userId,
+			);
 			if (jobRole) {
 				response.status(200).json(jobRole);
 			} else {

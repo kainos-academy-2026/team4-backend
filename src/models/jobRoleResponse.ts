@@ -8,4 +8,8 @@ export type JobRoleResponse = {
 	bandName: string;
 	closingDate: Date;
 	status: string;
+	myApplication?: {
+		status?: string;
+		cvFileName?: string;
+	} | null;
 };
