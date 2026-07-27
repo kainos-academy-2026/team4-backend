@@ -111,6 +111,12 @@ Development mode:
 npm run dev
 ```
 
+Run API + PostgreSQL in Docker Compose:
+
+```bash
+docker compose up --build -d
+```
+
 Build and run production output:
 
 ```bash
@@ -150,3 +156,23 @@ After installing dependencies, hooks are installed automatically via the `prepar
 - This repository already contains migrations, so you normally run `migrate dev` instead of creating a new `init` migration.
 - `npm run db:seed` is safe to rerun because the seed uses Prisma `upsert` operations.
 - If you want to verify the seeded data manually, run `docker exec academy-postgres psql -U academy_user -d job_roles_db -c 'select count(*) from "JobRole";'`.
+
+## Local SSL Certificate For Docker Builds
+
+If your machine/network uses a local or corporate CA (for example, TLS interception),
+export that CA certificate and place it in [certs/README.md](certs/README.md) as a `.crt` file.
+
+Example macOS flow:
+
+1. Open Keychain Access and export your CA certificate.
+2. Convert to PEM `.crt` format if needed:
+
+```bash
+openssl x509 -inform DER -in exported.cer -out certs/local-ca.crt
+```
+
+3. Rebuild containers:
+
+```bash
+docker compose up --build -d
+```
