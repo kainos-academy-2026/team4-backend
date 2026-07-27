@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+# Stage 1 (builder): install tools/dependencies and compile the app.
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
@@ -18,22 +19,21 @@ RUN npx prisma generate || NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma generate
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
+# Remove dev dependencies before handing node_modules to runtime stage.
+RUN npm prune --omit=dev
 
-FROM node:22-bookworm-slim AS runner
+# Stage 2 (runner): keep only the minimum runtime files for a smaller image.
+FROM gcr.io/distroless/nodejs22-debian12 AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
-	&& rm -rf /var/lib/apt/lists/*
-
-COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --ignore-scripts
-
+# Copy only compiled output and production dependencies from builder.
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules ./node_modules
+
+# Run the app as a non-root user (UID/GID 65532 in distroless images).
+USER 65532:65532
 
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+CMD ["dist/index.js"]
