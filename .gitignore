@@ -11,3 +11,4 @@ corporate-ca.crt
 *.tfstate.backup
 .terraform.lock.hcl
 crash.log
+state-backup/
