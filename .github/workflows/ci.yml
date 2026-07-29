@@ -148,7 +148,9 @@ jobs:
 
       - name: Smoke test container startup and health endpoint
         run: |
-          docker run -d --name academy-backend-smoke -p 4000:4000 "$TAG"
+          docker run -d --name academy-backend-smoke -p 4000:4000 \
+            -e DATABASE_URL='postgresql://postgres:postgres@localhost:5432/team4_backend_ci' \
+            "$TAG"
           trap 'docker logs academy-backend-smoke || true; docker rm -f academy-backend-smoke || true' EXIT
 
           for i in $(seq 1 30); do
