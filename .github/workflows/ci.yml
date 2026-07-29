@@ -47,6 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure placeholder CA cert exists
+        run: mkdir -p certs && touch certs/corporate-ca.crt
+
       - name: Create tags
         run: | 
           SHORT_SHA=${GITHUB_SHA::8}
