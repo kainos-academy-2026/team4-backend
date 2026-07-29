@@ -1,0 +1,52 @@
+name: Kim-CI-Experiment
+
+on:
+  push:
+    branches: [ci-pipeline-iteration]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm run build
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm run lint:ci
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm test
+
+  container-build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: [build, lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image with Git SHA tag
+        run: docker build -f Dockerfile -t team4-backend:${{ github.sha }} .

@@ -4,6 +4,7 @@ coverage/
 .env
 /src/generated/prisma
 corporate-ca.crt
+.DS_Store
 
 # Terraform
 .terraform/
@@ -12,4 +13,3 @@ corporate-ca.crt
 .terraform.lock.hcl
 crash.log
 state-backup/
-.DS_Store

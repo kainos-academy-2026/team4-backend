@@ -14,7 +14,7 @@ COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npx prisma generate || (echo "Prisma generate failed with TLS, retrying insecurely" && NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma generate)
 
 COPY tsconfig.json ./
 COPY src ./src
