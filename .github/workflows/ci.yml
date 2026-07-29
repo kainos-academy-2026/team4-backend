@@ -70,3 +70,139 @@ jobs:
 
       - name: Verify image was built
         run: docker images team4-backend
+
+  # Pushes to Azure Container Registry.
+  # - On push to `main`: pushes `latest` + `sha-<commit>` (stable, deployable tags).
+  #   We never push directly to `main` (branch protection), but merging a PR
+  #   is itself implemented by GitHub as a `push` event on `main` - so this
+  #   condition covers "PR merged to main", not a hypothetical direct push.
+  # - On same-repo pull requests: pushes a `pr-<number>` tag only, so a PR's
+  #   image can be pulled/tested before merge without polluting `latest`.
+  # Forked-repo PRs are excluded because they don't have access to the ACR
+  # secrets, and we don't want to attempt (and fail) a login for them.
+  docker-push:
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Determine image tags
+        id: tags
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: |
+          IMAGE="$ACR_LOGIN_SERVER/team4-backend"
+          {
+            echo "tags<<EOF"
+            echo "$IMAGE:sha-${{ github.sha }}"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "$IMAGE:pr-${{ github.event.pull_request.number }}"
+            else
+              echo "$IMAGE:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Authenticates using a dedicated Azure Service Principal scoped to
+      # `acrpush` on this registry only (not the ACR admin account), so
+      # access can be rotated/revoked independently of other credentials.
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push image to ACR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify push succeeded
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: |
+          docker buildx imagetools inspect "$ACR_LOGIN_SERVER/team4-backend:sha-${{ github.sha }}"
+
+  # Deploys the "dev" infrastructure (currently just a resource group).
+  # - Runs after the image build/push jobs, since infra provisioning is the
+  #   next pipeline stage once we know we have a deployable image.
+  # - `terraform plan` runs on every branch/PR for visibility & review.
+  # - `terraform apply` only runs on pushes to `main` (i.e. when a PR is
+  #   merged - we never push directly to `main`), so nothing is ever
+  #   applied automatically from a branch or open PR.
+  # `docker-push` is allowed to be "skipped" (e.g. a plain feature-branch
+  # push with no PR open yet) without blocking the plan-only path, but a
+  # genuine failure to push the image still blocks this job.
+  terraform:
+    runs-on: ubuntu-latest
+    needs: [docker-build, docker-push]
+    if: |
+      always() &&
+      needs.docker-build.result == 'success' &&
+      needs.docker-push.result != 'failure'
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: infrastructure
+    # Required for Azure login via OpenID Connect (Workload Identity
+    # Federation) - lets the Service Principal authenticate with a
+    # short-lived token instead of a stored client secret/password.
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      # Service Principal + OIDC auth (no client secret stored anywhere).
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      # Dynamic naming: "dev" for now, override per-environment later
+      # (e.g. a second job/matrix entry with TF_VAR_environment=prod).
+      TF_VAR_environment: dev
+      TF_VAR_project_name: team4-backend
+      TF_VAR_resource_group_name: rg-team4-backend
+      TF_VAR_location: uksouth
+      TF_IN_AUTOMATION: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+          # Disables the wrapper script so exit codes/stdout aren't
+          # swallowed - important for non-interactive CI runs.
+          terraform_wrapper: false
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        # State key is environment-specific so `prod` can reuse this same
+        # backend later just by changing the key, without touching main.tf.
+        run: terraform init -input=false -backend-config="key=${{ env.TF_VAR_environment }}.terraform.tfstate"
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Show deployed resource group
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform output

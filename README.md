@@ -105,31 +105,48 @@ npm run db:setup
 
 ## Infrastructure (Terraform)
 
-Use these steps before making infrastructure changes in `my-infrastructure/`.
+Use these steps before making infrastructure changes in `infrastructure/`. Shared,
+reusable resources (e.g. the resource group) live in `modules/`, so a future
+`prod` environment can reuse them just by pointing at a different `tfvars`
+file and state key — no module changes needed.
 
-1. Sign in to Azure CLI (required for backend auth):
+### Local usage
+
+1. Sign in to Azure CLI and tell Terraform to authenticate with it (required
+   for both the `azurerm` backend and provider — no client secret needed):
 
 ```bash
 az login
+export ARM_USE_CLI=true
 ```
 Select the correct subscription when prompted (sub-ai-academy-26)
 
 2. Initialize Terraform with the configured remote backend:
 
 ```bash
-cd my-infrastructure && terraform init -reconfigure
+cd infrastructure && terraform init -reconfigure
 ```
 
-3. Check the current plan/state:
+3. Check the current plan/state (uses `environments/dev.tfvars`):
 
 ```bash
-terraform plan
+terraform plan -var-file=environments/dev.tfvars
 ```
 
 Notes:
 
 - Remote state is configured with the `azurerm` backend in Azure Storage (storage account/container), not Azure Container Registry.
+- The state `key` is prefixed per environment (`dev.terraform.tfstate`) so a `prod.terraform.tfstate` can be added later in the same storage account without disturbing `dev`.
 - If you previously had local state, Terraform may prompt to migrate local state to remote during `init`. Choose migration so existing state history is preserved.
+
+### CI/CD usage
+
+The `terraform` job in `.github/workflows/ci.yml` runs non-interactively on every push/PR:
+
+- **`terraform plan`** always runs (on every branch/PR) so infrastructure changes are reviewed before merge.
+- **`terraform apply`** only runs on pushes to `main`, after the Docker image has been pushed to ACR.
+- Authentication uses a Service Principal with Azure AD Workload Identity Federation (OIDC) — the pipeline exchanges a short-lived GitHub Actions OIDC token for Azure access, so **no Azure secret/password is ever stored in GitHub**. This requires the following repository secrets to be configured (values, not passwords): `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`.
+- Dynamic naming (dev/prod) is driven entirely by `TF_VAR_*` environment variables set in the workflow, so adding a `prod` environment later is just a matter of adding a second job/matrix entry with `TF_VAR_environment=prod` and a `prod.terraform.tfstate` backend key — the `.tf` files themselves don't need to change.
 
 ## Run The API
 
