@@ -43,5 +43,15 @@ jobs:
       - name: Ensure placeholder CA cert exists
         run: mkdir -p certs && touch certs/corporate-ca.crt
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build image with Git SHA tag
-        run: docker build -f Dockerfile -t team4-backend:${{ github.sha }} .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: team4-backend:${{ github.sha }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
