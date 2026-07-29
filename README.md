@@ -103,6 +103,33 @@ password hashes using the `TEST_*` variables.
 npm run db:setup
 ```
 
+## Infrastructure (Terraform)
+
+Use these steps before making infrastructure changes in `my-infrastructure/`.
+
+1. Sign in to Azure CLI (required for backend auth):
+
+```bash
+az login
+```
+
+2. Initialize Terraform with the configured remote backend:
+
+```bash
+cd my-infrastructure && terraform init -reconfigure
+```
+
+3. Check the current plan/state:
+
+```bash
+terraform plan
+```
+
+Notes:
+
+- Remote state is configured with the `azurerm` backend in Azure Storage (storage account/container), not Azure Container Registry.
+- If you previously had local state, Terraform may prompt to migrate local state to remote during `init`. Choose migration so existing state history is preserved.
+
 ## Run The API
 
 Development mode:
