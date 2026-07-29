@@ -51,13 +51,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The Dockerfile expects certs/corporate-ca.crt for local corporate-network
-      # builds. That file is gitignored and machine-specific, so it won't exist
-      # in a clean CI checkout. GitHub-hosted runners aren't behind that proxy,
-      # so an empty placeholder satisfies the COPY step without affecting the build.
-      - name: Ensure placeholder CA cert exists
-        run: mkdir -p certs && touch certs/corporate-ca.crt
-
       - uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
