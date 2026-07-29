@@ -5,6 +5,10 @@ on:
     branches: [main, ci-pipeline-iteration]
   pull_request:
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   IMAGE_NAME: team4-backend
   ACR_NAME: ${{ secrets.ACR_NAME }}
