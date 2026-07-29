@@ -150,6 +150,7 @@ jobs:
         run: |
           docker run -d --name academy-backend-smoke -p 4000:4000 \
             -e DATABASE_URL='postgresql://postgres:postgres@localhost:5432/team4_backend_ci' \
+            -e JWT_ACCESS_SECRET="${{ secrets.JWT_TOKEN }}" \
             "$TAG"
           trap 'docker logs academy-backend-smoke || true; docker rm -f academy-backend-smoke || true' EXIT
 
