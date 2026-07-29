@@ -53,7 +53,7 @@ jobs:
       - name: Create tags
         run: | 
           SHORT_SHA=${GITHUB_SHA::8}
-          TS=$(date +'%Y%m%d%H%M%S')
+          TS=$(date +'%Y-%m-%d-%H-%M-%S')
           echo "TAG=academy-backend:$SHORT_SHA-$TS" >> $GITHUB_ENV
           echo "LATEST_TAG=academy-backend:latest" >> $GITHUB_ENV
       
