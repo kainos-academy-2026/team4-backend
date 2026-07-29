@@ -29,16 +29,16 @@ model Band {
 }
 
 model JobRole {
-  id           Int      @id @default(autoincrement())
-  roleName     String
-  location     String
-  capabilityId Int
-  bandId       Int
-  closingDate  DateTime
-  status       String
-  description  String
-  responsibilities String
-  sharepointUrl String?
+  id                    Int      @id @default(autoincrement())
+  roleName              String
+  location              String
+  capabilityId          Int
+  bandId                Int
+  closingDate           DateTime
+  status                String
+  description           String
+  responsibilities      String
+  sharepointUrl         String?
   numberOfOpenPositions Int?
 
   capability   Capability       @relation(fields: [capabilityId], references: [id], onDelete: Restrict, onUpdate: Cascade)

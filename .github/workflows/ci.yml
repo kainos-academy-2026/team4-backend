@@ -41,3 +41,130 @@ jobs:
           cache-dependency-path: "package-lock.json"
       - run: npm ci
       - run: npm test
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm run test:coverage
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+  prisma-checks:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/team4_backend_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npx prisma validate
+      - run: npx prisma format --check
+      - run: npm run prisma:generate
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        working-directory:
+          - my-infrastructure
+          - modules/resource-group
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false
+      - run: terraform validate
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - run: npm run build
+      - uses: github/codeql-action/analyze@v3
+    
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure placeholder CA cert exists
+        run: mkdir -p certs && touch certs/corporate-ca.crt
+
+      - name: Create tags
+        run: | 
+          SHORT_SHA=${GITHUB_SHA::8}
+          TS=$(date +'%Y-%m-%d-%H-%M-%S')
+          echo "TAG=academy-backend:$SHORT_SHA-$TS" >> $GITHUB_ENV
+          echo "LATEST_TAG=academy-backend:latest" >> $GITHUB_ENV
+      
+      - name: Build Docker image
+        run: |
+          docker build -t "$TAG" .
+          docker tag "$TAG" "$LATEST_TAG"
+
+
+      - name: verify build tags
+        run: |
+          docker image inspect "$LATEST_TAG" > /dev/null
+          docker image inspect "$TAG" > /dev/null
+          echo "Docker images built successfully: $TAG and $LATEST_TAG"
+
+      - name: Smoke test container startup and health endpoint
+        run: |
+          docker run -d --name academy-backend-smoke -p 4000:4000 \
+            -e DATABASE_URL='postgresql://postgres:postgres@localhost:5432/team4_backend_ci' \
+            -e JWT_ACCESS_SECRET="${{ secrets.JWT_TOKEN }}" \
+            "$TAG"
+          trap 'docker logs academy-backend-smoke || true; docker rm -f academy-backend-smoke || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4000/health > /dev/null; then
+              echo "Container is healthy"
+              exit 0
+            fi
+            if ! docker ps --filter "name=academy-backend-smoke" --filter "status=running" --format '{{.Names}}' | grep -q '^academy-backend-smoke$'; then
+              echo "Container stopped before becoming healthy"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo "Health check timed out"
+          exit 1
