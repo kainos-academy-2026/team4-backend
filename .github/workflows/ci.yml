@@ -41,3 +41,27 @@ jobs:
           cache-dependency-path: "package-lock.json"
       - run: npm ci
       - run: npm test
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create tags
+        run: | 
+          SHORT_SHA=${GITHUB_SHA::8}
+          TS=$(date +'%Y%m%d%H%M%S')
+          echo "TAG=academy-backend:$SHORT_SHA-$TS" >> $GITHUB_ENV
+          echo "LATEST_TAG=academy-backend:latest" >> $GITHUB_ENV
+      
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.TAG }} .
+          docker tag ${{ env.TAG }} ${{ env.LATEST_TAG }}
+
+
+      - name: verify build tags
+        run: |
+          docker image inspect ${{ env.LATEST_TAG }} > /dev/null
+          docker image inspect ${{ env.TAG }} > /dev/null
+          echo "Docker images built successfully: ${{ env.TAG }} and ${{ env.LATEST_TAG }}"
