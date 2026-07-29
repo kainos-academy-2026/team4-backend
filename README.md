@@ -112,6 +112,7 @@ Use these steps before making infrastructure changes in `my-infrastructure/`.
 ```bash
 az login
 ```
+Select the correct subscription when prompted (sub-ai-academy-26)
 
 2. Initialize Terraform with the configured remote backend:
 
