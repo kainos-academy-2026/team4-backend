@@ -3,7 +3,7 @@ location            = "uksouth"
 environment         = "dev"
 project_name        = "team4-backend"
 acr_name            = "acraiacademy26"
-acr_resource_group  = "rg-aia-academy-shared"
+acr_resource_group  = "rg-ai-academy-26"
 image_tag             = "latest"
 frontend_project_name = "team4-frontend"
 
