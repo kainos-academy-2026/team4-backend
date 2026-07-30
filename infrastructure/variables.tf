@@ -1,52 +1,43 @@
-variable "resource_group_name" {
-  description = "Name of the Azure resource group"
-  type        = string
-  default     = "rg-team4-backend"
-
-  validation {
-    condition     = length(var.resource_group_name) >= 1 && length(var.resource_group_name) <= 90
-    error_message = "Resource group name must be between 1 and 90 characters."
-  }
-}
-
 variable "location" {
-  description = "Azure region for resources (e.g., uksouth, eastus, northeurope)"
+  description = "The location of the resource group."
   type        = string
   default     = "uksouth"
 
   validation {
-    condition     = can(regex("^[a-z]+$", var.location))
-    error_message = "Location must contain only lowercase letters."
+    condition     = can(regex("^[a-z0-9]+$", var.location))
+    error_message = "location must be a valid Azure region in lowercase letters and numbers (for example: uksouth, westus2)."
   }
 }
 
 variable "environment" {
-  description = "Deployment environment (dev, test, or prod)"
+  description = "The environment tag for the resource group."
   type        = string
   default     = "dev"
 
   validation {
-    condition     = contains(["dev", "test", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, test, prod."
+    condition     = can(regex("^[a-z]+$", var.environment))
+    error_message = "environment must be a valid environment name in lowercase letters."
   }
 }
 
-variable "project_name" {
-  description = "Project name for resource naming and tagging"
+variable "project" {
+  description = "The project tag for the resource group."
   type        = string
-  default     = "team4-backend"
+  default     = "team4"
 
   validation {
-    condition     = length(var.project_name) >= 1 && length(var.project_name) <= 20
-    error_message = "Project name must be between 1 and 20 characters."
+    condition     = can(regex("^[a-z0-9]+$", var.project))
+    error_message = "project must be a valid project name in lowercase letters and numbers."
   }
 }
 
-variable "tags" {
-  description = "Common tags to apply to all resources"
-  type        = map(string)
-  default = {
-    managed_by = "terraform"
-    created_by = "platform-course"
+variable "managed_by" {
+  description = "The managed_by tag for the resource group."
+  type        = string
+  default     = "terraform"
+
+  validation {
+    condition     = can(regex("^[a-z]+$", var.managed_by))
+    error_message = "managed_by must be a valid manager name in lowercase letters."
   }
 }
