@@ -12,8 +12,8 @@ jobs:
         env:
             DOCKER_BUILDKIT: 1
         steps:
-            - run: mkdir -p certs && touch certs/corporate-ca.crt
             - uses: actions/checkout@v4
+            - run: mkdir -p certs && touch certs/corporate-ca.crt
             - run: echo "Hello from GitHub Actions!"
             - run: docker build -t team4-backend:${{ github.sha }} .
             - run: docker tag team4-backend:${{ github.sha }} team4-backend:latest
