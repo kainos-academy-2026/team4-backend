@@ -77,41 +77,9 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: docker push "$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}"
 
-  # Run plan on PRs and main so infra changes are always previewed.
-  terraform-plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Azure login
-        env:
-          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        run: |
-          set -euo pipefail
-          az login --service-principal \
-            --username "$CLIENT_ID" \
-            --password "$CLIENT_SECRET" \
-            --tenant "$TENANT_ID"
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        run: terraform -chdir=my-infrastructure init -input=false -no-color
-
-      - name: Terraform Validate
-        run: terraform -chdir=my-infrastructure validate -no-color
-
-      - name: Terraform Plan (dev)
-        run: terraform -chdir=my-infrastructure plan -input=false -no-color -var="environment=dev"
-
   # Main only so real infrastructure changes happen from merged code.
-  terraform-apply:
-    name: Terraform Apply (main)
+  terraform-plan-apply:
+    name: Terraform Plan and Apply (main)
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -143,4 +111,5 @@ jobs:
         run: terraform -chdir=my-infrastructure plan -input=false -no-color -var="environment=dev" -out=tfplan
 
       - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform -chdir=my-infrastructure apply -input=false -auto-approve -no-color tfplan
