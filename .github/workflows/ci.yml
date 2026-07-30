@@ -15,7 +15,6 @@ env:
   ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
 
 jobs:
-  # Check code formatting.
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -29,7 +28,6 @@ jobs:
       - run: npm ci
       - run: npm run lint:ci
 
-  # Run tests.
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -43,7 +41,6 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  # Build Docker image.
   build:
     name: Build Docker image
     runs-on: ubuntu-latest
@@ -55,7 +52,7 @@ jobs:
       - name: Build image with Git SHA tag
         run: docker build -f Dockerfile -t team4-backend:${{ github.sha }} .
 
-      # Main only: log in to Azure.
+      # Main only because we only publish release images from merged code.
       - name: Azure login
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
@@ -69,7 +66,6 @@ jobs:
             --password "$CLIENT_SECRET" \
             --tenant "$TENANT_ID"
 
-      # Main only: push image to ACR.
       - name: Log in to ACR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: az acr login --name "$ACR_NAME"
@@ -82,7 +78,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: docker push "$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}"
 
-  # All non-main branches and PRs: plan only (no apply).
+  # Branches/PRs only so we preview infra changes safely before merge.
   terraform-plan:
     name: Terraform Plan (branches)
     runs-on: ubuntu-latest
@@ -113,10 +109,9 @@ jobs:
         run: terraform -chdir=my-infrastructure validate -no-color
 
       - name: Terraform Plan (dev)
-        # Needed so we can preview infra changes safely before merge.
         run: terraform -chdir=my-infrastructure plan -input=false -no-color -var="environment=dev"
 
-  # Main only: apply changes.
+  # Main only so real infrastructure changes happen from merged code.
   terraform-apply:
     name: Terraform Apply (main)
     runs-on: ubuntu-latest
