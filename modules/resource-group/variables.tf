@@ -13,8 +13,8 @@ variable "location" {
   type        = string
 
   validation {
-    condition     = can(regex("^[a-z]+$", var.location))
-    error_message = "Location must contain only lowercase letters."
+    condition     = can(regex("^[a-z0-9]+$", var.location))
+    error_message = "Location must contain only lowercase letters and numbers."
   }
 }
 
