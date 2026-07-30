@@ -5,20 +5,17 @@ on:
     branches: [main]
   pull_request:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: "package-lock.json"
-      - run: npm ci
-      - run: npm run build
+permissions:
+  contents: read
 
+env:
+  IMAGE_NAME: team4-backend
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
+
+jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +28,7 @@ jobs:
       - run: npm run lint:ci
 
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,3 +39,108 @@ jobs:
           cache-dependency-path: "package-lock.json"
       - run: npm ci
       - run: npm test
+
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image with Git SHA tag
+        run: docker build -f Dockerfile -t team4-backend:${{ github.sha }} .
+
+      # Main only because we only publish release images from merged code.
+      - name: Azure login
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        run: |
+          set -euo pipefail
+          az login --service-principal \
+            --username "$CLIENT_ID" \
+            --password "$CLIENT_SECRET" \
+            --tenant "$TENANT_ID"
+
+      - name: Log in to ACR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Tag image for ACR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker tag "$IMAGE_NAME:${{ github.sha }}" "$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}"
+
+      - name: Push image to ACR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker push "$ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}"
+
+  # Run plan on PRs and main so infra changes are always previewed.
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        env:
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        run: |
+          set -euo pipefail
+          az login --service-principal \
+            --username "$CLIENT_ID" \
+            --password "$CLIENT_SECRET" \
+            --tenant "$TENANT_ID"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=my-infrastructure init -input=false -no-color
+
+      - name: Terraform Validate
+        run: terraform -chdir=my-infrastructure validate -no-color
+
+      - name: Terraform Plan (dev)
+        run: terraform -chdir=my-infrastructure plan -input=false -no-color -var="environment=dev"
+
+  # Main only so real infrastructure changes happen from merged code.
+  terraform-apply:
+    name: Terraform Apply (main)
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        env:
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        run: |
+          set -euo pipefail
+          az login --service-principal \
+            --username "$CLIENT_ID" \
+            --password "$CLIENT_SECRET" \
+            --tenant "$TENANT_ID"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=my-infrastructure init -input=false -no-color
+
+      - name: Terraform Validate
+        run: terraform -chdir=my-infrastructure validate -no-color
+
+      - name: Terraform Plan (dev)
+        run: terraform -chdir=my-infrastructure plan -input=false -no-color -var="environment=dev" -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform -chdir=my-infrastructure apply -input=false -auto-approve -no-color tfplan
