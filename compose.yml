@@ -7,11 +7,12 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://academy_user:academy_password@postgres:5432/job_roles_db
-      NODE_ENV: production
-      JWT_ACCESS_SECRET: this-is-a-very-long-secret-key-for-jwt-access-token-testing-that-exceeds-128-characters-requirement-absolutely-definitely-surely-long-enough-now-xyz-123
-      JWT_REFRESH_SECRET: this-is-a-very-long-secret-key-for-jwt-refresh-token-testing-that-exceeds-128-characters-requirement-absolutely-definitely-surely-long-enough-now-abc-456
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set in .env}
+      NODE_ENV: ${NODE_ENV:-production}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET must be set in .env}
     depends_on:
       postgres:
         condition: service_healthy
