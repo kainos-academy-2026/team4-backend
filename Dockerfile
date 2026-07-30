@@ -5,7 +5,8 @@ WORKDIR /app
 
 RUN apk add --no-cache ca-certificates openssl libc6-compat
 
-COPY certs/corporate-ca.crt /usr/local/share/ca-certificates/corporate-ca.crt
+# Commenting out on temporary basis because ca-cert is not found by github actions
+# COPY certs/corporate-ca.crt /usr/local/share/ca-certificates/corporate-ca.crt
 RUN update-ca-certificates
 
 ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/corporate-ca.crt
