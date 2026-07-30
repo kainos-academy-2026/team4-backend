@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 
   backend "azurerm" {}
@@ -36,9 +40,32 @@ data "azurerm_container_registry" "main" {
   resource_group_name = var.acr_resource_group
 }
 
-data "azurerm_key_vault" "main" {
-  name                = var.key_vault_name
-  resource_group_name = var.key_vault_resource_group
+resource "random_string" "key_vault_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
+resource "azurerm_key_vault" "apps" {
+  name                       = "kv-team4-${var.environment}-${random_string.key_vault_suffix.result}"
+  resource_group_name        = module.resource_group.name
+  location                   = var.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  enable_rbac_authorization  = true
+  purge_protection_enabled   = false
+  soft_delete_retention_days = 7
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Allow"
+  }
+
+  tags = {
+    environment = var.environment
+    managed_by  = var.managed_by
+    project     = var.project
+  }
 }
 
 resource "azurerm_user_assigned_identity" "main" {
@@ -139,7 +166,7 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_role_assignment" "kv_secrets_user" {
-  scope                = data.azurerm_key_vault.main.id
+  scope                = azurerm_key_vault.apps.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.main.principal_id
 }
@@ -211,7 +238,7 @@ resource "azurerm_container_app" "backend" {
 
   secret {
     name                = "jwt-access-secret"
-    key_vault_secret_id = "${data.azurerm_key_vault.main.vault_uri}secrets/JwtAccessSecret"
+    key_vault_secret_id = "${azurerm_key_vault.apps.vault_uri}secrets/JwtAccessSecret"
     identity            = azurerm_user_assigned_identity.main.id
   }
 

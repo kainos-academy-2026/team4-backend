@@ -52,16 +52,6 @@ variable "acr_resource_group" {
   type        = string
 }
 
-variable "key_vault_name" {
-  description = "The name of the existing Azure Key Vault."
-  type        = string
-}
-
-variable "key_vault_resource_group" {
-  description = "The resource group containing the Key Vault."
-  type        = string
-}
-
 variable "backend_image_tag" {
   description = "The image tag to deploy for the backend container app."
   type        = string

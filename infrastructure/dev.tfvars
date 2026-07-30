@@ -1,10 +1,7 @@
 environment = "dev"
 
-acr_name                 = "acraiacademy26"
-acr_resource_group       = "rg-ai-academy-26"
-key_vault_name           = "kv-team4-backend-dev"
-key_vault_resource_group = "rg-team4-backend-dev"
-
+acr_name           = "acraiacademy26"
+acr_resource_group = "rg-ai-academy-26"
 backend_image_tag  = "main"
 frontend_image_tag = "main"
 
