@@ -41,3 +41,57 @@ variable "managed_by" {
     error_message = "managed_by must be a valid manager name in lowercase letters."
   }
 }
+
+variable "acr_name" {
+  description = "The name of the Azure Container Registry."
+  type        = string
+}
+
+variable "acr_resource_group" {
+  description = "The resource group containing the Azure Container Registry."
+  type        = string
+}
+
+variable "key_vault_name" {
+  description = "The name of the existing Azure Key Vault."
+  type        = string
+}
+
+variable "key_vault_resource_group" {
+  description = "The resource group containing the Key Vault."
+  type        = string
+}
+
+variable "backend_image_tag" {
+  description = "The image tag to deploy for the backend container app."
+  type        = string
+  default     = "main"
+}
+
+variable "frontend_image_tag" {
+  description = "The image tag to deploy for the frontend container app."
+  type        = string
+  default     = "main"
+}
+
+variable "aws_region" {
+  description = "The AWS region for S3 access."
+  type        = string
+}
+
+variable "s3_bucket_name" {
+  description = "The S3 bucket name for CV uploads."
+  type        = string
+}
+
+variable "feature_job_applications_enabled" {
+  description = "Feature flag to enable or disable job applications."
+  type        = bool
+  default     = true
+}
+
+variable "postgres_password" {
+  description = "Password for the postgres container app database user."
+  type        = string
+  sensitive   = true
+}
