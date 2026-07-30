@@ -50,3 +50,38 @@ variable "tags" {
     created_by = "platform-course"
   }
 }
+
+variable "acr_name" {
+  description = "Name of the existing Azure Container Registry"
+  type        = string
+  default     = "acraiacademy26"
+}
+
+variable "acr_resource_group" {
+  description = "Resource group of the existing Azure Container Registry"
+  type        = string
+}
+
+variable "image_tag" {
+  description = "Image tag to deploy (e.g. latest or a specific SHA)"
+  type        = string
+  default     = "latest"
+}
+
+variable "frontend_project_name" {
+  description = "Project name for the frontend container app and image"
+  type        = string
+  default     = "team4-frontend"
+}
+
+variable "secret_env_vars" {
+  description = "Map of environment variable name to Key Vault secret URI. Added manually to Key Vault then referenced here."
+  type        = map(string)
+  default     = {}
+}
+
+variable "feature_flags" {
+  description = "Map of feature flag environment variable names to values (e.g. FEATURE_NEW_UI = true)"
+  type        = map(string)
+  default     = {}
+}

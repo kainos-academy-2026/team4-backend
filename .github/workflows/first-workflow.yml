@@ -1,0 +1,89 @@
+name: first-workflow
+
+on:
+  push:
+  pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: 
+            image: docker:24.0.5-dind
+        env:
+            DOCKER_BUILDKIT: 1
+        steps:
+            - uses: actions/checkout@v4
+            - run: echo "Hello from GitHub Actions!"
+            - run: docker build -t team4-backend:${{ github.sha }} .
+            - run: docker tag team4-backend:${{ github.sha }} team4-backend:latest
+            - run: docker images
+      
+    test: 
+        runs-on: ubuntu-latest
+        container: 
+            image: node:22
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: "22"
+                cache: "npm"
+                cache-dependency-path: "package-lock.json"
+            - run: npm ci
+            - run: npm run lint:ci
+            - run: npm test
+
+    gate:
+        needs: [test, build]
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "✅ Pipeline passed - all checks successful"
+
+    terraform:
+        needs: [gate, push]
+        runs-on: ubuntu-latest
+        if: always() && needs.gate.result == 'success' && (needs.push.result == 'success' || needs.push.result == 'skipped')
+        env:
+            ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+            ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+            ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: hashicorp/setup-terraform@v3
+              with:
+                terraform_version: "~1.9"
+            - name: Terraform Init
+              working-directory: my-infrastructure
+              run: terraform init -input=false
+            - name: Terraform Plan
+              working-directory: my-infrastructure
+              run: terraform plan -input=false -out=tfplan
+            - name: Terraform Apply
+              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+              working-directory: my-infrastructure
+              run: terraform apply -auto-approve tfplan
+
+    push:
+        needs: [gate]
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        container:
+            image: docker:24.0.5-dind
+        env:
+            DOCKER_BUILDKIT: 1
+        steps:
+            - uses: actions/checkout@v4
+            - name: Login to Azure Container Registry
+              run: echo "${{ secrets.AZURE_CLIENT_SECRET }}" | docker login acraiacademy26.azurecr.io -u ${{ secrets.AZURE_CLIENT_ID }} --password-stdin
+            - name: Build and tag image
+              run: |
+                docker build -t acraiacademy26.azurecr.io/team4-backend:${{ github.sha }} .
+                docker tag acraiacademy26.azurecr.io/team4-backend:${{ github.sha }} acraiacademy26.azurecr.io/team4-backend:latest
+            - name: Push to ACR
+              run: |
+                docker push acraiacademy26.azurecr.io/team4-backend:${{ github.sha }}
+                docker push acraiacademy26.azurecr.io/team4-backend:latest
+            - name: Verify push
+              run: echo "✅ Image pushed to acraiacademy26.azurecr.io/team4-backend:${{ github.sha }}"
+
