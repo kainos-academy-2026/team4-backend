@@ -144,6 +144,11 @@ resource "azurerm_container_app" "frontend" {
       cpu    = var.frontend_cpu
       memory = var.frontend_memory
 
+      env {
+        name  = "API_BASE_URL"
+        value = "https://${azurerm_container_app.backend.latest_revision_fqdn}"
+      }
+
       dynamic "env" {
         for_each = var.feature_flags
         content {
