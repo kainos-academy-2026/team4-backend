@@ -274,14 +274,14 @@ Missing any of these can cause backend revision startup failures.
 ### Local containers vs cloud containers
 
 1. Local:
-- Docker Compose runs backend and Postgres.
-- Local env values come from the local env file.
-- Used for development and testing.
+   - Docker Compose runs backend and Postgres.
+   - Local env values come from the local env file.
+   - Used for development and testing.
 
 2. Cloud:
-- CI builds and pushes images to ACR.
-- Terraform points Container Apps at image repository and tag.
-- Runtime values come from Key Vault, not local env file.
+   - CI builds and pushes images to ACR.
+   - Terraform points Container Apps at image repository and tag.
+   - Runtime values come from Key Vault, not local env file.
 
 ### Day-1 verification checklist
 
