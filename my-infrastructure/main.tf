@@ -154,7 +154,10 @@ resource "azurerm_container_app" "frontend" {
     }
   }
 
-  depends_on = [azurerm_role_assignment.key_vault_secrets_user]
+  depends_on = [
+    azurerm_role_assignment.acr_pull,
+    azurerm_role_assignment.key_vault_secrets_user
+  ]
 }
 
 resource "azurerm_container_app" "backend" {
@@ -285,5 +288,9 @@ resource "azurerm_container_app" "backend" {
     }
   }
 
-  depends_on = [azurerm_role_assignment.key_vault_secrets_user]
+  depends_on = [
+    azurerm_role_assignment.acr_pull,
+    azurerm_role_assignment.key_vault_secrets_user
+  ]
 }
+
