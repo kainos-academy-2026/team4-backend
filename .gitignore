@@ -13,3 +13,4 @@ corporate-ca.crt
 .terraform.lock.hcl
 crash.log
 state-backup/
+.DS_Store
